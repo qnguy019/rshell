@@ -6,13 +6,15 @@
 #include <cstring>
 #include <queue>
 #include <vector>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 using namespace std;
 
 bool parse_commands(queue<string>& commands, string command_line)
 {
    cout << "Beginning of Parse Commands" << endl;
    bool keep_loop = true;
-   vector<string> ref;
    char* store = strdup(command_line.c_str());
    char* token;
    //just to parse all commands into vector
@@ -27,14 +29,9 @@ bool parse_commands(queue<string>& commands, string command_line)
       }
       else
       {
-        ref.push_back(token);
+        commands.push(token);
         token = strtok(NULL, ";||&&" );
       }
-   }
-
-   for (int q = 0; q < ref.size(); q++)
-  {
-     cout << ref.at(q) << endl;
    }
 
    //parse individual commands
@@ -42,6 +39,7 @@ bool parse_commands(queue<string>& commands, string command_line)
    cout << "End of Parse Commands" << endl;
    return keep_loop;
 }   
+
 void parse_connectors(queue<string>& connector, string command_line)
 {
    for(int i = 0; i < command_line.size(); i++)
@@ -64,26 +62,28 @@ void parse_connectors(queue<string>& connector, string command_line)
    
 }
 
-void execute(queue<string> command, queue<string> connector)
+//returns if it execvp correctly
+bool execute(string command)
 {
-   for(int i = 0; i < ref.size(); i++)
+   char* token;
+   char* store = strdup(command.c_str());
+   token = strtok(store, " ");
+   int pos = 0;
+   char* arr[15];
+   
+   while (token != NULL)
    {
-      string real_command;
-      string temp_command = ref.at(i);
-
-      store = strdup(temp_command.c_str());
-      token = strtok(store, " ");
-      real_command = real_command + token + " ";
+      arr[pos] = token;
+      pos++;
       token = strtok(NULL, " ");
-      while (token != NULL)
-      {
-         real_command = real_command + token;
-         token = strtok(NULL, " ");
-      }
-      commands.push(real_command);
-    
    }
+   arr[pos] = NULL;
+   
+   bool error = execvp(arr[0], arr);
+   delete[] arr;
+   return error;
 }
+
 //returns true if exit. false if there is no exit
 bool prompt(queue<string>& command_queue, queue<string>& connector_queue)
 {
@@ -93,26 +93,8 @@ bool prompt(queue<string>& command_queue, queue<string>& connector_queue)
    getline(cin, command_line);
    keep_loop = parse_commands(command_queue, command_line);
    parse_connectors(connector_queue, command_line);
+   execute(command_queue, connector_queue);
 
-/*
-   char* store_char = strdup(command_line.c_str());
-   char* token;
-   token = strtok(store_char, ";||&&");
-   while (token != NULL)
-   {
-      string temp = token;
-      if (temp == "exit")
-      {
-         keep_loop = false;
-         break;
-      }
-      else
-      {
-        ref.push_back(token);
-        token = strtok(NULL, ";||&&" );
-      }
-   }
-*/
    return keep_loop;
 
 } 
@@ -122,9 +104,10 @@ void rshell()
 {
    queue<string> command;
    queue<string> connector;
-
-   while(prompt(command, connector))
-   {
+   bool run = true;
+   while(run)
+   { 
+     run = prompt(command, connector);
 
 
    }
