@@ -8,16 +8,96 @@
 #include <vector>
 using namespace std;
 
+bool parse_commands(queue<string>& commands, string command_line)
+{
+   cout << "Beginning of Parse Commands" << endl;
+   bool keep_loop = true;
+   vector<string> ref;
+   char* store = strdup(command_line.c_str());
+   char* token;
+   //just to parse all commands into vector
+   token = strtok(store, ";|&");
+   while (token != NULL)
+   {
+      string temp = token;
+      if (temp == "exit")
+      {
+         keep_loop = false; //if this doesnt work, make it end the function 
+         break;
+      }
+      else
+      {
+        ref.push_back(token);
+        token = strtok(NULL, ";||&&" );
+      }
+   }
+
+   for (int q = 0; q < ref.size(); q++)
+  {
+     cout << ref.at(q) << endl;
+   }
+
+   //parse individual commands
+
+   cout << "End of Parse Commands" << endl;
+   return keep_loop;
+}   
+void parse_connectors(queue<string>& connector, string command_line)
+{
+   for(int i = 0; i < command_line.size(); i++)
+   {
+      if (command_line.at(i) == ';')
+      {
+         connector.push(";");
+      }
+      else if (command_line.at(i) == '|')
+      {
+         connector.push("|");
+         i++;
+      }
+      else if (command_line.at(i) == '&')
+      {
+         connector.push("&");
+         i++;
+      }
+   }
+   
+}
+
+void execute(queue<string> command, queue<string> connector)
+{
+   for(int i = 0; i < ref.size(); i++)
+   {
+      string real_command;
+      string temp_command = ref.at(i);
+
+      store = strdup(temp_command.c_str());
+      token = strtok(store, " ");
+      real_command = real_command + token + " ";
+      token = strtok(NULL, " ");
+      while (token != NULL)
+      {
+         real_command = real_command + token;
+         token = strtok(NULL, " ");
+      }
+      commands.push(real_command);
+    
+   }
+}
 //returns true if exit. false if there is no exit
-bool prompt(vector<string>& ref)
+bool prompt(queue<string>& command_queue, queue<string>& connector_queue)
 {
    string command_line;
-   bool keep_loop = true;;
+   bool keep_loop = true;
    cout << "$: ";
    getline(cin, command_line);
+   keep_loop = parse_commands(command_queue, command_line);
+   parse_connectors(connector_queue, command_line);
+
+/*
    char* store_char = strdup(command_line.c_str());
    char* token;
-   token = strtok(store_char, " ");
+   token = strtok(store_char, ";||&&");
    while (token != NULL)
    {
       string temp = token;
@@ -29,36 +109,36 @@ bool prompt(vector<string>& ref)
       else
       {
         ref.push_back(token);
-        token = strtok(NULL, " " );
+        token = strtok(NULL, ";||&&" );
       }
    }
-
+*/
    return keep_loop;
 
 } 
 
 
-void parse(queue<string> commands, queue<string> connectors,
-vector<string> tok)
-{
-
-
-}
 void rshell()
 {
-   vector<string> tokens;
-   queue<string> commands;
-   queue<string> connectors;
+   queue<string> command;
+   queue<string> connector;
 
-   while(prompt(tokens))
+   while(prompt(command, connector))
    {
-     cout << "Ending" << endl;
+
 
    }
-   for (int i = 0; i < tokens.size(); i++)
-   {
-      cout << tokens.at(i) << endl;
-   }
+      while (!command.empty())
+      {
+         cout << "Command:" << command.front() << endl;
+         if(!connector.empty()) 
+         {
+            cout << "Connector: " << connector.front() << endl;
+            connector.pop();
+         }
+         command.pop();
+      }
+
 }
 
 
