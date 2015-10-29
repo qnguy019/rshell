@@ -50,6 +50,19 @@ void parse_connectors(queue<string>& connector, string command_line)
    
 }
 
+void check_exit(queue<string> command)
+{
+   while (!command.empty())
+   {
+      string command_s = command.front();
+      char* token;
+      char* store = strdup(command_s.c_str());
+      token = strtok(store, " ");
+      string check_exit = token;
+      if (check_exit == "exit") exit(0);
+      command.pop();
+    }
+}
 //Executes a command from the string in the command queue
 //Checks if the first word of the command is exit. If so, exit the program
 //Returns true if executed correctly, -1 if there was an error
@@ -74,7 +87,6 @@ bool execute_command(queue<string>& command)
    
    bool error = execvp(arr[0], arr);
    delete[] arr;
-   command.pop();
    return error;
 }
 
@@ -99,20 +111,24 @@ void rshell()
    bool run = true;
    while(prompt(command, connector))
    { 
-      cout << "Number: " << execute_command(command) << endl;
-
-   }
-      while (!command.empty())
+      check_exit(command);
+      while(!command.empty())
       {
-         cout << "Command:" << command.front() << endl;
-         if(!connector.empty()) 
+         pid_t current_pid = fork();
+         
+         if (current_pid < 0)
          {
-            cout << "Connector: " << connector.front() << endl;
-            connector.pop();
+            cout << "fork() error" << endl;
+            exit(-1);
          }
+         else if (current_pid == 0)
+         {
+            execute_command(command);
+         }
+         wait(NULL);
          command.pop();
       }
-
+   }
 }
 
 
