@@ -6,38 +6,26 @@
 #include <cstring>
 #include <queue>
 #include <vector>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 using namespace std;
 
-bool parse_commands(queue<string>& commands, string command_line)
+void parse_commands(queue<string>& commands, string command_line)
 {
-   cout << "Beginning of Parse Commands" << endl;
-   bool keep_loop = true;
    char* store = strdup(command_line.c_str());
    char* token;
    //just to parse all commands into vector
    token = strtok(store, ";|&");
    while (token != NULL)
    {
-      string temp = token;
-      if (temp == "exit")
-      {
-         keep_loop = false; //if this doesnt work, make it end the function 
-         break;
-      }
-      else
-      {
-        commands.push(token);
-        token = strtok(NULL, ";||&&" );
-      }
+      commands.push(token);
+      token = strtok(NULL, ";||&&" );
    }
 
    //parse individual commands
 
-   cout << "End of Parse Commands" << endl;
-   return keep_loop;
 }   
 
 void parse_connectors(queue<string>& connector, string command_line)
@@ -62,12 +50,17 @@ void parse_connectors(queue<string>& connector, string command_line)
    
 }
 
-//returns if it execvp correctly
-bool execute(string command)
+//Executes a command from the string in the command queue
+//Checks if the first word of the command is exit. If so, exit the program
+//Returns true if executed correctly, -1 if there was an error
+bool execute_command(queue<string>& command)
 {
+   string command_s = command.front();
    char* token;
-   char* store = strdup(command.c_str());
+   char* store = strdup(command_s.c_str());
    token = strtok(store, " ");
+   string check_exit = token;
+   if (check_exit == "exit") exit(0);
    int pos = 0;
    char* arr[15];
    
@@ -81,6 +74,7 @@ bool execute(string command)
    
    bool error = execvp(arr[0], arr);
    delete[] arr;
+   command.pop();
    return error;
 }
 
@@ -91,10 +85,8 @@ bool prompt(queue<string>& command_queue, queue<string>& connector_queue)
    bool keep_loop = true;
    cout << "$: ";
    getline(cin, command_line);
-   keep_loop = parse_commands(command_queue, command_line);
+   parse_commands(command_queue, command_line);
    parse_connectors(connector_queue, command_line);
-   execute(command_queue, connector_queue);
-
    return keep_loop;
 
 } 
@@ -105,10 +97,9 @@ void rshell()
    queue<string> command;
    queue<string> connector;
    bool run = true;
-   while(run)
+   while(prompt(command, connector))
    { 
-     run = prompt(command, connector);
-
+      cout << "Number: " << execute_command(command) << endl;
 
    }
       while (!command.empty())
