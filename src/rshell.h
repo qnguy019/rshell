@@ -7,22 +7,43 @@
 #include <queue>
 #include <vector>
 #include <stdlib.h>
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
 using namespace std;
 
 static bool fail_command = false;
+static queue<string> command;
+static queue<string> connector;
 
+string parse_for_comments(string command_line)
+{
+   string to_return = command_line;
+   for (unsigned i = 0; i < command_line.size(); i++)
+   {
+      if (command_line.at(i) == '#')
+      {
+         char* store = strdup(to_return.c_str());
+         char* token;
+         token = strtok(store, "#");
+         to_return = token;
+         break;
+      }
+   }
+   return to_return;
 
+}
 void parse_commands(queue<string>& commands, string command_line)
 {
    char* store = strdup(command_line.c_str());
    char* token;
-   //just to parse all commands into vector
+   //just to parse all commands into queue
    token = strtok(store, ";|&");
    while (token != NULL)
    {
+      string temp = token;
       commands.push(token);
       token = strtok(NULL, ";||&&" );
    }
@@ -30,7 +51,7 @@ void parse_commands(queue<string>& commands, string command_line)
 
 void parse_connectors(queue<string>& connector, string command_line)
 {
-   for(int i = 0; i < command_line.size(); i++)
+   for(unsigned i = 0; i < command_line.size(); i++)
    {
       if (command_line.at(i) == ';')
       {
@@ -50,9 +71,9 @@ void parse_connectors(queue<string>& connector, string command_line)
    
 }
 
-bool check_exit(queue<string> command)
+bool no_exit(queue<string> command)
 {
-   bool exit_program = false;
+   bool stay_while = true;
    while (!command.empty())
    {
       string command_s = command.front();
@@ -60,14 +81,14 @@ bool check_exit(queue<string> command)
       char* store = strdup(command_s.c_str());
       token = strtok(store, " ");
       string check_exit = token;
-      if (check_exit == "exit")
+      if (check_exit == "exit") 
       {
-         exit_program = true;
+         stay_while = false;
          break;
       }
       command.pop();
     }
-    return exit_program;
+    return stay_while;
 }
 //Executes a command from the string in the command queue
 //Checks if the first word of the command is exit. If so, exit the program
@@ -78,8 +99,6 @@ void execute_command(queue<string>& command)//, bool fail_command)
    char* token;
    char* store = strdup(command_s.c_str());
    token = strtok(store, " ");
-   string check_exit = token;
-   if (check_exit == "exit") exit(0);
    int pos = 0;
    char* arr[15];
    
@@ -91,12 +110,11 @@ void execute_command(queue<string>& command)//, bool fail_command)
    }
    arr[pos] = NULL;
 
-   //fail_command = false;
    if (execvp(arr[0], arr) == -1)
    {
       cout << command.front() << ": command not found" << endl;
-      fail_command = true;
-    }
+   }
+   else fail_command = false;
 }
 
 //returns true if exit. false if there is no exit
@@ -118,13 +136,58 @@ void clear_queue(queue<string>& command, queue<string>& connector)
    while (!connector.empty()) connector.pop();
 
 }
-/*
-void fork_process(queue<string> command, bool fail_command)
-{
 
+void print_queue(queue<string> s)
+{
+   while (!s.empty())
+   {
+      cout << s.front() << endl;
+      s.pop();
+   }
 
 }
-*/
+
+void fork_process(queue<string>& command, queue<string>& connector)
+{
+      while (!command.empty())
+      { 
+         int status;
+         pid_t current_pid, w;
+         current_pid = fork();
+         
+         if (current_pid < 0)
+         {
+            perror("fork()");
+            exit(-1);
+         }
+         else if (current_pid == 0)
+         {
+            execute_command(command);
+            exit(EXIT_FAILURE);
+         }
+         else 
+         {
+            w = waitpid(current_pid, &status, 0);
+            if (w == -1) {}
+            if ((WIFEXITED(status) == WEXITSTATUS(status)) != 0) fail_command = true;
+
+            command.pop();
+            if (!connector.empty())
+            { bool check = true;
+               while (check && !connector.empty())
+               {
+                  string temp_connector = connector.front();
+                  connector.pop();
+                  if (temp_connector == "|" && fail_command == false) command.pop();
+                  if (temp_connector == "&" && fail_command == true) command.pop();
+                  else break;
+               }
+            }
+         
+         } 
+      }
+}
+
 
 
 //The main function that runs the shell terminal
@@ -134,46 +197,14 @@ void fork_process(queue<string> command, bool fail_command)
 void rshell()
 {
    //bool fail_command = false;
-   queue<string> command;
-   queue<string> connector;
-   bool run = true;
-   while (prompt(command, connector))
+ //  queue<string> command;
+ //  queue<string> connector;
+   while (prompt(command, connector) && no_exit(command))
    { 
-      if (check_exit(command)) break;
-      while (!command.empty())
-      {
-         fail_command = false;
-         pid_t current_pid = fork();
-         
-         if (current_pid < 0)
-         {
-            cout << "fork() error" << endl;
-            exit(-1);
-         }
-         else if (current_pid == 0)
-         {
-            execute_command(command);//, fail_command);
-         }
-         wait(NULL);
-         command.pop();
-         if (!connector.empty())
-         {
-            string temp_connector = connector.front();
-            connector.pop();
-            if (temp_connector == "|")
-            {
-               if (fail_command == false) command.pop();
-            }
-
-            if (temp_connector == "&")
-            {
-               if (fail_command == true) command.pop();
-            }
-         }
-
-      }
+      fork_process(command, connector);
       clear_queue(command, connector);
    }
+   clear_queue(command, connector);
 }
 
 
