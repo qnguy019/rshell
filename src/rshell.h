@@ -35,9 +35,11 @@ string parse_for_comments(string command_line)
    return to_return;
 
 }
+
 void parse_commands(queue<string>& commands, string command_line)
 {
-   char* store = strdup(command_line.c_str());
+   string to_use = parse_for_comments(command_line);
+   char* store = strdup(to_use.c_str());
    char* token;
    //just to parse all commands into queue
    token = strtok(store, ";|&");
@@ -108,6 +110,7 @@ void execute_command(queue<string>& command)//, bool fail_command)
       pos++;
       token = strtok(NULL, " ");
    }
+
    arr[pos] = NULL;
 
    if (execvp(arr[0], arr) == -1)
@@ -173,9 +176,11 @@ void fork_process(queue<string>& command, queue<string>& connector)
 
             command.pop();
             if (!connector.empty())
-            { bool check = true;
+            {
+               bool check = true;
                while (check && !connector.empty())
                {
+                  if (command.empty()) break;
                   string temp_connector = connector.front();
                   connector.pop();
                   if (temp_connector == "|" && fail_command == false) command.pop();
@@ -196,9 +201,6 @@ void fork_process(queue<string>& command, queue<string>& connector)
 //still have it work
 void rshell()
 {
-   //bool fail_command = false;
- //  queue<string> command;
- //  queue<string> connector;
    while (prompt(command, connector) && no_exit(command))
    { 
       fork_process(command, connector);
