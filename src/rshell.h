@@ -18,24 +18,21 @@ static bool fail_command = false;
 static queue<string> command;
 static queue<string> connector;
 
+
+//Gets rid of the commands/words after the #
 string parse_for_comments(string command_line)
 {
-   string to_return = command_line;
-   for (unsigned i = 0; i < command_line.size(); i++)
-   {
-      if (command_line.at(i) == '#')
-      {
-         char* store = strdup(to_return.c_str());
-         char* token;
-         token = strtok(store, "#");
-         to_return = token;
-         break;
-      }
-   }
-   return to_return;
+   char* store = strdup(command_line.c_str());
+   char* token;
+   token = strtok(store, "#");
+   command_line = token;
+   
+   return command_line;
 
 }
 
+//Tokens everything in between ; | & into a queue.
+//It still keeps the spaces however ie " ls -a"
 void parse_commands(queue<string>& commands, string command_line)
 {
    string to_use = parse_for_comments(command_line);
@@ -51,6 +48,7 @@ void parse_commands(queue<string>& commands, string command_line)
    }
 }   
 
+//Searches from ; | and & and puts it into connector queue
 void parse_connectors(queue<string>& connector, string command_line)
 {
    for(unsigned i = 0; i < command_line.size(); i++)
@@ -73,28 +71,22 @@ void parse_connectors(queue<string>& connector, string command_line)
    
 }
 
-bool no_exit(queue<string> command)
+//Checks if the next command is "exit"
+//Returns false if the program should exit
+bool no_exit(string command)
 {
-   bool stay_while = true;
-   while (!command.empty())
-   {
-      string command_s = command.front();
-      char* token;
-      char* store = strdup(command_s.c_str());
-      token = strtok(store, " ");
-      string check_exit = token;
-      if (check_exit == "exit") 
-      {
-         stay_while = false;
-         break;
-      }
-      command.pop();
-    }
-    return stay_while;
+   bool dont_exit = true;
+   char* token;
+   char* store = strdup(command.c_str());
+   token = strtok(store, " ");
+   string check_exit = token;
+   if (check_exit == "exit") dont_exit = false;
+   
+   return dont_exit;
 }
+
 //Executes a command from the string in the command queue
-//Checks if the first word of the command is exit. If so, exit the program
-//Changes fail command to true if execvp returned an error (-1)
+//Converts the string from the queue  into char* []
 void execute_command(queue<string>& command)//, bool fail_command)
 {
    string command_s = command.front();
@@ -112,27 +104,27 @@ void execute_command(queue<string>& command)//, bool fail_command)
    }
 
    arr[pos] = NULL;
-
+   
    if (execvp(arr[0], arr) == -1)
    {
       cout << command.front() << ": command not found" << endl;
    }
-   else fail_command = false;
 }
 
-//returns true if exit. false if there is no exit
-bool prompt(queue<string>& command_queue, queue<string>& connector_queue)
+//Outputs $ and where user can input commands
+//Runs the functions to parse commands and connectors
+void prompt(queue<string>& command_queue, queue<string>& connector_queue)
 {
    string command_line;
-   bool keep_loop = true;
    cout << "$: ";
    getline(cin, command_line);
+   if (command_line == "" || command_line.at(0) == '#') return;
    parse_commands(command_queue, command_line);
    parse_connectors(connector_queue, command_line);
-   return keep_loop;
-
 } 
 
+//Empties the queue just in case there are some left over
+//by the time the user inputs commands again
 void clear_queue(queue<string>& command, queue<string>& connector)
 {
    while (!command.empty()) command.pop();
@@ -140,39 +132,35 @@ void clear_queue(queue<string>& command, queue<string>& connector)
 
 }
 
-void print_queue(queue<string> s)
-{
-   while (!s.empty())
-   {
-      cout << s.front() << endl;
-      s.pop();
-   }
-
-}
-
-void fork_process(queue<string>& command, queue<string>& connector)
+//Returns false if there was an exit command
+bool fork_process(queue<string>& command, queue<string>& connector)
 {
       while (!command.empty())
       { 
+         //check if the command is exit
+         bool dont_exit = no_exit(command.front());
+         if (dont_exit == false) return false;
+
+         fail_command = false;
          int status;
          pid_t current_pid, w;
          current_pid = fork();
          
-         if (current_pid < 0)
+         if (current_pid < 0) //if pid is negative, there was an error with fork()
          {
             perror("fork()");
             exit(-1);
          }
-         else if (current_pid == 0)
+         else if (current_pid == 0) //if pid is 0, we are in the child process
          {
             execute_command(command);
-            exit(EXIT_FAILURE);
+            exit(EXIT_FAILURE); //if the execvp didn't run successfully, return EXIT_FAILURE to parent
          }
          else 
          {
-            w = waitpid(current_pid, &status, 0);
+            w = waitpid(current_pid, &status, 0); //parent waits for the child.
             if (w == -1) {}
-            if ((WIFEXITED(status) == WEXITSTATUS(status)) != 0) fail_command = true;
+            if ((WIFEXITED(status) == WEXITSTATUS(status)) != 0) fail_command = true; //parent checks if child failed
 
             command.pop();
             if (!connector.empty())
@@ -188,25 +176,24 @@ void fork_process(queue<string>& command, queue<string>& connector)
                   else break;
                }
             }
-         
+
          } 
       }
+      return true;
 }
 
 
 
 //The main function that runs the shell terminal
-//It has the fork process in it.
-//Need to figure out how to put it in a separate function and
-//still have it work
 void rshell()
 {
-   while (prompt(command, connector) && no_exit(command))
-   { 
-      fork_process(command, connector);
+   bool stay_while = true;
+   while (stay_while)
+   {
+      prompt(command, connector); 
+      stay_while = fork_process(command, connector);
       clear_queue(command, connector);
    }
-   clear_queue(command, connector);
 }
 
 
