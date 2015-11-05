@@ -19,6 +19,45 @@ static queue<string> command;
 static queue<string> connector;
 
 
+//returns false if | or & was found. 
+bool check_single_connectors (string command_line)
+{
+   if (command_line.at(0) == '|' || command_line.at(0) == '&')
+   {
+      cout << "Error: \"|\" and \"&\" is not valid. Use \"||\" and \"&&\"" << endl;
+      return false;
+   }
+   unsigned i;
+   for(i = 0; i < command_line.size() - 1; i++)
+   {
+      if (command_line.at(i) == '|')
+      {
+         if (command_line.at(i + 1) != '|')
+         {
+            cout << "Error: \"|\" and \"&\" is not valid. Use \"||\" and \"&&\"" << endl;       
+            return false;
+         }
+         else i++;
+         
+      }
+      else if (command_line.at(i) == '&')
+      {
+          if (command_line.at(i + 1) != '&')
+         {
+            cout << "Error: \"|\" and \"&\" is not valid. Use \"||\" and \"&&\"" << endl;       
+            return false;
+         }
+         else i++;
+      }
+   }
+   if (command_line.at(i) == '|' || command_line.at(i) ==  '&')
+   {
+      cout << "Error: \"|\" and \"&\" is not valid. Use \"||\" and \"&&\"" << endl;
+      return false;
+   }
+   return true;
+}
+        
 //Gets rid of the commands/words after the #
 string parse_for_comments(string command_line)
 {
@@ -119,6 +158,8 @@ void prompt(queue<string>& command_queue, queue<string>& connector_queue)
    cout << "$: ";
    getline(cin, command_line);
    if (command_line == "" || command_line.at(0) == '#') return;
+   bool single_error = check_single_connectors(command_line);
+   if (single_error == false) return;
    parse_commands(command_queue, command_line);
    parse_connectors(connector_queue, command_line);
 } 
