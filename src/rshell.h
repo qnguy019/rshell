@@ -22,19 +22,27 @@ static queue<string> connector;
 //returns false if | or & was found. 
 bool check_single_connectors (string command_line)
 {
-   if (command_line.at(0) == '|' || command_line.at(0) == '&')
+   char* store = strdup(command_line.c_str());
+   char* token;
+   token = strtok(store, " ");
+   string temp = token;
+   if (temp.at(0) == ';') 
    {
-      cout << "Error: \"|\" and \"&\" is not valid. Use \"||\" and \"&&\"" << endl;
+      cout << "Error: Cannot have \";\" in beginning of command line" << endl;
       return false;
    }
-   unsigned i;
-   for(i = 0; i < command_line.size() - 1; i++)
+   else if (command_line.at(0) == '|' || command_line.at(0) == '&')
+   {
+      cout << "Error: Use \"||\" and \"&&\"" << endl;
+      return false;
+   }
+   for(unsigned i = 0; i < command_line.size() - 1; i++)
    {
       if (command_line.at(i) == '|')
       {
          if (command_line.at(i + 1) != '|')
          {
-            cout << "Error: \"|\" and \"&\" is not valid. Use \"||\" and \"&&\"" << endl;       
+            cout << "Error: Use \"||\" and \"&&\"" << endl;       
             return false;
          }
          else i++;
@@ -42,40 +50,52 @@ bool check_single_connectors (string command_line)
       }
       else if (command_line.at(i) == '&')
       {
-          if (command_line.at(i + 1) != '&')
+         if (command_line.at(i + 1) != '&')
          {
-            cout << "Error: \"|\" and \"&\" is not valid. Use \"||\" and \"&&\"" << endl;       
+            cout << "Error: Use \"||\" and \"&&\"" << endl;       
             return false;
          }
          else i++;
       }
    }
-   if (command_line.at(i) == '|' || command_line.at(i) ==  '&')
+   unsigned end = command_line.size() - 1;
+   if (command_line.at(end) == '|' || command_line.at(end) ==  '&')
    {
-      cout << "Error: \"|\" and \"&\" is not valid. Use \"||\" and \"&&\"" << endl;
+      cout << "Error: Use \"||\" and \"&&\"" << endl;
       return false;
    }
    return true;
 }
-        
-//Gets rid of the commands/words after the #
-string parse_for_comments(string command_line)
+  
+
+void parse_comments(string& command_line)
 {
+   
    char* store = strdup(command_line.c_str());
    char* token;
-   token = strtok(store, "#");
-   command_line = token;
-   
-   return command_line;
-
+   string temp, store_comm;
+   token = strtok(store, " ");
+   temp = token;
+   while (token != NULL)
+   {
+      temp = token;
+      if (temp.at(0) == '#')
+      {
+         command_line = store_comm;
+         return;
+      }
+      store_comm = store_comm + " " + temp;
+      token = strtok(NULL, " ");
+   }
+   command_line = store_comm;
 }
-
+   
 //Tokens everything in between ; | & into a queue.
 //It still keeps the spaces however ie " ls -a"
 void parse_commands(queue<string>& commands, string command_line)
 {
-   string to_use = parse_for_comments(command_line);
-   char* store = strdup(to_use.c_str());
+   parse_comments(command_line);
+   char* store = strdup(command_line.c_str());
    char* token;
    //just to parse all commands into queue
    token = strtok(store, ";|&");
@@ -90,7 +110,8 @@ void parse_commands(queue<string>& commands, string command_line)
 //Searches from ; | and & and puts it into connector queue
 void parse_connectors(queue<string>& connector, string command_line)
 {
-   for(unsigned i = 0; i < command_line.size(); i++)
+   unsigned i;
+   for(i = 0; i < command_line.size(); i++)
    {
       if (command_line.at(i) == ';')
       {
@@ -144,9 +165,10 @@ void execute_command(queue<string>& command)//, bool fail_command)
 
    arr[pos] = NULL;
    
-   if (execvp(arr[0], arr) == -1)
+   if (execvp(arr[0], arr) < 0)
    {
-      cout << command.front() << ": command not found" << endl;
+      perror(NULL);
+      exit(EXIT_FAILURE);
    }
 }
 
@@ -199,7 +221,7 @@ bool fork_process(queue<string>& command, queue<string>& connector)
          }
          else 
          {
-            w = waitpid(current_pid, &status, 0); //parent waits for the child.
+            w = waitpid(current_pid, &status, 0); //parent waits for the child. child will return -1 if execvp failed
             if (w == -1) {}
             if ((WIFEXITED(status) == WEXITSTATUS(status)) != 0) fail_command = true; //parent checks if child failed
 
