@@ -20,7 +20,7 @@ static queue<string> connector;
 
 
 //returns false if | or & was found. 
-bool check_single_connectors (string command_line)
+bool check_connector_errors(string command_line)
 {
    char* store = strdup(command_line.c_str());
    char* token;
@@ -31,9 +31,14 @@ bool check_single_connectors (string command_line)
       cout << "Error: Cannot have \";\" in beginning of command line" << endl;
       return false;
    }
+   if (command_line.find(";;") != string::npos)
+   {
+      cout << "Error: \";;\" is invalid" << endl;
+      return false;
+   }
    else if (command_line.at(0) == '|' || command_line.at(0) == '&')
    {
-      cout << "Error: Use \"||\" and \"&&\"" << endl;
+      cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;
       return false;
    }
    for(unsigned i = 0; i < command_line.size() - 1; i++)
@@ -42,7 +47,7 @@ bool check_single_connectors (string command_line)
       {
          if (command_line.at(i + 1) != '|')
          {
-            cout << "Error: Use \"||\" and \"&&\"" << endl;       
+            cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;       
             return false;
          }
          else i++;
@@ -52,7 +57,7 @@ bool check_single_connectors (string command_line)
       {
          if (command_line.at(i + 1) != '&')
          {
-            cout << "Error: Use \"||\" and \"&&\"" << endl;       
+            cout << "Error: Incorrect syntax \"||\" and \"&&\"" << endl;       
             return false;
          }
          else i++;
@@ -61,7 +66,7 @@ bool check_single_connectors (string command_line)
    unsigned end = command_line.size() - 1;
    if (command_line.at(end) == '|' || command_line.at(end) ==  '&')
    {
-      cout << "Error: Use \"||\" and \"&&\"" << endl;
+      cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;
       return false;
    }
    return true;
@@ -94,7 +99,6 @@ void parse_comments(string& command_line)
 //It still keeps the spaces however ie " ls -a"
 void parse_commands(queue<string>& commands, string command_line)
 {
-   parse_comments(command_line);
    char* store = strdup(command_line.c_str());
    char* token;
    //just to parse all commands into queue
@@ -102,7 +106,7 @@ void parse_commands(queue<string>& commands, string command_line)
    while (token != NULL)
    {
       string temp = token;
-      commands.push(token);
+      commands.push(temp);
       token = strtok(NULL, ";||&&" );
    }
 }   
@@ -172,20 +176,6 @@ void execute_command(queue<string>& command)//, bool fail_command)
    }
 }
 
-//Outputs $ and where user can input commands
-//Runs the functions to parse commands and connectors
-void prompt(queue<string>& command_queue, queue<string>& connector_queue)
-{
-   string command_line;
-   cout << "$: ";
-   getline(cin, command_line);
-   if (command_line == "" || command_line.at(0) == '#') return;
-   bool single_error = check_single_connectors(command_line);
-   if (single_error == false) return;
-   parse_commands(command_queue, command_line);
-   parse_connectors(connector_queue, command_line);
-} 
-
 //Empties the queue just in case there are some left over
 //by the time the user inputs commands again
 void clear_queue(queue<string>& command, queue<string>& connector)
@@ -194,6 +184,42 @@ void clear_queue(queue<string>& command, queue<string>& connector)
    while (!connector.empty()) connector.pop();
 
 }
+
+
+bool empty_command(queue<string> command)
+{
+   while (!command.empty())
+   {
+      char* store = strdup(command.front().c_str());
+      char* token = strtok(store, " ");
+      if (token == NULL) return true;
+      else command.pop();
+   }
+   return false;
+
+
+}
+//Outputs $ and where user can input commands
+//Runs the functions to parse commands and connectors
+void prompt(queue<string>& command_queue, queue<string>& connector_queue)
+{
+   string command_line;
+   
+   cout << "$: ";
+   getline(cin, command_line);
+   if (command_line == "" || command_line.at(0) == '#') return;
+   parse_comments(command_line);
+   bool single_error = check_connector_errors(command_line);
+   if (single_error == false) return;
+   parse_commands(command_queue, command_line);
+   parse_connectors(connector_queue, command_line);
+   if (empty_command(command_queue))
+   {
+      cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;
+      clear_queue(command_queue, connector_queue);
+   }
+} 
+
 
 //Returns false if there was an exit command
 bool fork_process(queue<string>& command, queue<string>& connector)
@@ -224,7 +250,7 @@ bool fork_process(queue<string>& command, queue<string>& connector)
             w = waitpid(current_pid, &status, 0); //parent waits for the child. child will return -1 if execvp failed
             if (w == -1) {}
             if ((WIFEXITED(status) == WEXITSTATUS(status)) != 0) fail_command = true; //parent checks if child failed
-
+            
             command.pop();
             if (!connector.empty())
             {
@@ -235,7 +261,7 @@ bool fork_process(queue<string>& command, queue<string>& connector)
                   string temp_connector = connector.front();
                   connector.pop();
                   if (temp_connector == "|" && fail_command == false) command.pop();
-                  if (temp_connector == "&" && fail_command == true) command.pop();
+                  else if (temp_connector == "&" && fail_command == true) command.pop();
                   else break;
                }
             }
