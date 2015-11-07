@@ -13,10 +13,12 @@ EOF
 
 #Comments after connectors
 ../bin/rshell << EOF
-ls ;# echo hello && cal && echo Hello Again || git status
+ls ;# echo hello && cal && echo Hello Again || git status #this doesn't work
 ls ; echo hello &&# cal && echo Hello Again || git status
 ls ; echo hello && cal &&# echo Hello Again || git status
 ls ; echo hello && cal && echo Hello Again ||# git status
+ls ; echo h#i#;#echo hello
+ls ; echo h#i#y#a||#echo hello
 exit
 EOF
 

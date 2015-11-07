@@ -81,6 +81,7 @@ void parse_comments(string& command_line)
    string temp, store_comm;
    token = strtok(store, " ");
    temp = token;
+   //checks if theres a # before a command/connector
    while (token != NULL)
    {
       temp = token;
@@ -89,8 +90,20 @@ void parse_comments(string& command_line)
          command_line = store_comm;
          return;
       }
+      
       store_comm = store_comm + " " + temp;
       token = strtok(NULL, " ");
+   }
+   //checks if theres a # after a connector
+   for (unsigned i = 0; i < store_comm.size(); i++)
+   {
+      if ((store_comm.at(i) == '|' || store_comm.at(i) == ';'
+      || store_comm.at(i) == '&') && store_comm.at(i + 1) == '#') 
+      {
+         store_comm.erase(store_comm.begin() + i, store_comm.end());
+         command_line = store_comm;
+         return;
+      }
    }
    command_line = store_comm;
 }
