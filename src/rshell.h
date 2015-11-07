@@ -36,7 +36,13 @@ bool check_connector_errors(string command_line)
       cout << "Error: \";;\" is invalid" << endl;
       return false;
    }
-   else if (command_line.at(0) == '|' || command_line.at(0) == '&')
+   unsigned end = command_line.size() - 1;
+   if (command_line.at(end) == '|' || command_line.at(end) ==  '&')
+   {
+      cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;
+      return false;
+   }
+   if (command_line.at(0) == '|' || command_line.at(0) == '&')
    {
       cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;
       return false;
@@ -63,19 +69,13 @@ bool check_connector_errors(string command_line)
          else i++;
       }
    }
-   unsigned end = command_line.size() - 1;
-   if (command_line.at(end) == '|' || command_line.at(end) ==  '&')
-   {
-      cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;
-      return false;
-   }
+
    return true;
 }
   
 
 void parse_comments(string& command_line)
 {
-   
    char* store = strdup(command_line.c_str());
    char* token;
    string temp, store_comm;
@@ -95,7 +95,7 @@ void parse_comments(string& command_line)
       token = strtok(NULL, " ");
    }
    //checks if theres a # after a connector
-   for (unsigned i = 0; i < store_comm.size(); i++)
+   for (unsigned i = 0; i < store_comm.size() - 1; i++)
    {
       if ((store_comm.at(i) == '|' || store_comm.at(i) == ';'
       || store_comm.at(i) == '&') && store_comm.at(i + 1) == '#') 

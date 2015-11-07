@@ -2,18 +2,18 @@
 
 #Comments before connectors
 ../bin/rshell << EOF
-#ls ; echo hello || cal && echo Hello Again || git status
-ls ; #echo hello || cal && echo Hello Again || git status
-ls ; echo hello #|| cal && echo Hello Again || git status
-ls ; echo hello || cal #&& echo Hello Again || git status
-ls ; echo hello || cal && echo Hello Again #|| git status
-ls ; echo hello || cal && echo Hello Again || git status#
+#ls ; echo hello || cal && echo Hello Again1 || git status
+ls ; #echo hello || cal && echo Hello Again2 || git status
+ls ; echo hello #|| cal && echo Hello Again3 || git status
+ls ; echo hello || cal #&& echo Hello Again4 || git status
+ls ; echo hello || cal && echo Hello Again5 #|| git status
+ls ; echo hello || cal && echo Hello Again6 || git status#
 exit
 EOF
 
 #Comments after connectors
 ../bin/rshell << EOF
-ls ;# echo hello && cal && echo Hello Again || git status #this doesn't work
+ls ;# echo hello && cal && echo Hello Again || git status
 ls ; echo hello &&# cal && echo Hello Again || git status
 ls ; echo hello && cal &&# echo Hello Again || git status
 ls ; echo hello && cal && echo Hello Again ||# git status
