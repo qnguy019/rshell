@@ -10,11 +10,9 @@ Beginner C++ coders uses a shell in order to run various commands, but how is it
 ##Instructions
 To download this repository:
 
-git clone http://github.com/qnguy019/rshell.git
-
-cd rshell
-
-git checkout hw1
+- git clone http://github.com/qnguy019/rshell.git
+- cd rshell
+- git checkout hw1
 
 "Make" will compile the source file into an executable called rshell, create a new directory called bin, and move rshell into the directory. To execute the code, either type "bin/rshell" or cd into the bin directory and run rshell. 
 
@@ -47,11 +45,11 @@ If you want to run these scripts, cd into the tests directory and run ./file_nam
 ##Bugs
 Be aware that this program is not fully complete. I tried to find all the bugs in my program and made them output errors instead of crashing my program. Besides the system call errors that should be outputted with perror, some other errors I outputted are:
 
-- Single | and & - Error: Incorrect syntax of "||" and "&&"
-- | and & at the beginning or end of the input - Error: Incorrect syntax of "||" and "&&" 
-- Empty command in between two connects - Error: Incorrect syntax of "||" and "&&" 
-- Double ;; - Error: ";;" is invalid 
-- ; in the beginning of the command line - Error: Cannot have ";" in the beginning of command line
+- Single | and & - _Error: Incorrect syntax of "||" and "&&"_
+- | and & at the beginning or end of the input - _Error: Incorrect syntax of "||" and "&&"_ 
+- Empty command in between two connects - _Error: Incorrect syntax of "||" and "&&"_ 
+- Double ;; - _Error: ";;" is invalid_ 
+- ; in the beginning of the command line - _Error: Cannot have ";" in the beginning of command line_
 
 _Other bugs:_
 - entering more connectors added together ("|||||" or "&&&&&&&&")
