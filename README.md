@@ -18,55 +18,42 @@ git checkout hw1
 
 "Make" will compile the source file into an executable called rshell, create a new directory called bin, and move rshell into the directory. To execute the code, either type "bin/rshell" or cd into the bin directory and run rshell. 
 
-In order to exit the program, simply type in "exit"
+In order to exit the program once it is running, simply type in "exit"
 ##Information
-###src
+#####src
 Contains: main.cpp, rshell.h
 
-main.cpp
-   Description: runs the main rshell function
+main.cpp: runs the main rshell function
 
-rshell.h
-   Description: contains all the functions used to make rshell
-###tests
-I made some pre-made test commands under the tests directory:
+rshell.h: contains all the functions used to make rshell
+#####tests
+Contains: single_command.sh, multi_command.sh, commented_command.sh, exit.sh
 
-single_command.sh
-   Description: tests single commands
+single_command.sh: tests single commands
 
-multi_command.sh
-   Description: tests commands with multiple connectors
+multi_command.sh: tests commands with multiple connectors
 
-commented_command.sh
-   Description: tests commands with comments placed at different spots
+commented_command.sh: tests commands with comments placed at different spots
 
-exit.sh
-   Description: tests exit command with connectors
+exit.sh: tests exit command with connectors
 
 If you want to run these scripts, cd into the tests directory and run ./file_name (i.e. ./single_command.sh)
 
-###liscense
-   Description: The liscense for my project
-
 ###Makefile
    Description: This is used to compile the code and putting the executable in the created bin directory. 
-- make or make all: compile the code, create a new bin directory, and move the executable in bin
-- make clean: remove the bin directory and all the files it contained
+- _make or make all:_ compile the code, create a new bin directory, and move the executable in bin
+- _make clean:_ remove the bin directory and all the files it contained
 
 ##Bugs
 Be aware that this program is not fully complete. I tried to find all the bugs in my program and made them output errors instead of crashing my program. Besides the system call errors that should be outputted with perror, some other errors I outputted are:
 
-Single | and & - Error: Incorrect syntax of "||" and "&&"
+- Single | and & - Error: Incorrect syntax of "||" and "&&"
+- | and & at the beginning or end of the input - Error: Incorrect syntax of "||" and "&&" 
+- Empty command in between two connects - Error: Incorrect syntax of "||" and "&&" 
+- Double ;; - Error: ";;" is invalid 
+- ; in the beginning of the command line - Error: Cannot have ";" in the beginning of command line
 
-| and & at the beginning or end of the input - Error: Incorrect syntax of "||" and "&&" 
-
-Empty command in between two connects - Error: Incorrect syntax of "||" and "&&" 
-
-Double ;; - Error: ";;" is invalid 
-
-; in the beginning of the command line - Error: Cannot have ";" in the beginning of command line
-
-Other bugs: 
+_Other bugs:_
 - entering more connectors added together ("|||||" or "&&&&&&&&")
 - "ls asfe || echo hello" does not echo hello
 
