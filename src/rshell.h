@@ -195,7 +195,6 @@ void clear_queue(queue<string>& command, queue<string>& connector)
 {
    while (!command.empty()) command.pop();
    while (!connector.empty()) connector.pop();
-
 }
 
 
@@ -261,8 +260,7 @@ bool fork_process(queue<string>& command, queue<string>& connector)
          else 
          {
             w = waitpid(current_pid, &status, 0); //parent waits for the child. child will return -1 if execvp failed
-            if (w == -1) {}
-            if ((WIFEXITED(status) == WEXITSTATUS(status)) != 0) fail_command = true; //parent checks if child failed
+            if (((WIFEXITED(status) == WEXITSTATUS(status)) != 0) || w == -1) fail_command = true; //parent checks if child failed
             
             command.pop();
             if (!connector.empty())
