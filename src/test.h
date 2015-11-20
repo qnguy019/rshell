@@ -20,9 +20,9 @@ class Test
 {
 protected:
 	string orig;
-	bool bracket;
-	bool flag;
-	bool yes;
+	bool bracket; //true if the command started with a [
+	bool flag; //true if there was a "-" flag
+	bool yes; //true if ran successfully
 	vector<string> arg;
 public: 
 	Test(string o, string fw)
@@ -92,20 +92,25 @@ public:
 		//If there is no matching ] for [
 		if (bracket)
 		{
-			if (orig.find("[") == string::npos || orig.find("]") == string::npos)
+			if (orig.find("[") == string::npos && orig.find("]") == string::npos)
 			{
 				cout << "Error: No matching ']' for '['" << endl;
 				return false;
 			}
 		}
+		if (orig.find("[[") != string::npos || orig.find("]]") != string::npos)
+		{
+			cout << "Error: Unexpected '[' or ']'" << endl;
+			return false;
+		}
 		//Too many arguments for bracket
-		if (bracket && arg.size() > 4)
+		if (bracket && (arg.size() > 4 || arg.at(1).at(0) != '-'))
 		{
 			cout << "Error: Too many arguments" << endl;
 			return false;
 		}
 		//Too many arguments for test
-		if (!(bracket) && arg.size() > 3)
+		if (!(bracket) && (arg.size() > 3 || arg.at(1).at(0) != '-'))
 		{
 			cout << "Error: Too many arguments" << endl;
 			return false;
@@ -132,27 +137,28 @@ public:
 				if (!bracket && arg.size() == 2) return true;
 				else if (bracket && arg.size() == 3) return true;
 				else yes = run(sb);
-				if (yes) cout << "Yes" << endl;
 				if (yes) return true;
 				return false;
 			}
 			else if (arg.at(1) == "-f")
 			{
-				if (arg.size() == 2) return true;
+				if (!bracket && arg.size() == 2) return true;
+				else if (bracket && arg.size() == 3) return true;
 				else yes = run(sb);
 				if (yes && S_ISREG(sb.st_mode)) return true;
 				return false;
 			}
 			else if (arg.at(1) == "-d")
 			{
-				if (arg.size() == 2) return true;
+				if (!bracket && arg.size() == 2) return true;
+				else if (bracket && arg.size() == 3) return true;
 				else yes = run(sb);
 				if (yes && S_ISDIR(sb.st_mode)) return true;
 				return false;
 			}
 			else
 			{
-				cout << "Error: Invalid tag. Please use -e, -f, or -d" << endl;
+				cout << "Invalid Flag: For the sake of this assignment, please use -e, -f, or -d" << endl;
 				return false;
 			}
 		}

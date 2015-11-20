@@ -135,7 +135,7 @@ public:
          }
          else if (current_pid == 0) //if pid is 0, we are in the child process
          {
-				if (first_word == "test" || first_word == "[")
+				if (first_word == "test" || first_word == "[" || first_word.at(0) == '[')
 				{
 					Test* new_test = new Test(command.front(), first_word);
 					bool yes = new_test->execute();
