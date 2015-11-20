@@ -1,300 +1,321 @@
 #ifndef RSHELL_H
-#define RSHELL_H
+#define RSHELL
 
-#include <iostream>
-#include <string>
-#include <cstring>
-#include <queue>
-#include <vector>
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-
-using namespace std;
-
-static bool fail_command = false;
-static queue<string> command;
-static queue<string> connector;
-
-
-//returns false if | or & was found. 
-bool check_connector_errors(string command_line)
+#include "command.h"
+class Rshell
 {
-   char* store = strdup(command_line.c_str());
-   char* token;
-   token = strtok(store, " ");
-   string temp = token;
-   if (temp.at(0) == ';') 
-   {
-      cout << "Error: Cannot have \";\" in beginning of command line" << endl;
-      return false;
-   }
-   if (command_line.find(";;") != string::npos)
-   {
-      cout << "Error: \";;\" is invalid" << endl;
-      return false;
-   }
-   unsigned end = command_line.size() - 1;
-   if (command_line.at(end) == '|' || command_line.at(end) ==  '&')
-   {
-      cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;
-      return false;
-   }
-   if (command_line.at(0) == '|' || command_line.at(0) == '&')
-   {
-      cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;
-      return false;
-   }
-   for(unsigned i = 0; i < command_line.size() - 1; i++)
-   {
-      if (command_line.at(i) == '|')
-      {
-         if (command_line.at(i + 1) != '|')
-         {
-            cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;       
-            return false;
-         }
-         else i++;
-         
-      }
-      else if (command_line.at(i) == '&')
-      {
-         if (command_line.at(i + 1) != '&')
-         {
-            cout << "Error: Incorrect syntax \"||\" and \"&&\"" << endl;       
-            return false;
-         }
-         else i++;
-      }
-   }
+public:
+	queue<Command*> command_ptrs;
+	queue<string> connector;
+	bool run;
+	bool fail;
 
-   return true;
-}
+	Rshell()
+	{
+		run = true;
+	}
+	int num_occurences(char a, string c)
+	{
+		int count = 0;
+		for (unsigned i = 0; i < c.size(); i++)
+		{
+			if (c.at(i) == a) count++;
+		}
+		return count;
+	}
+	bool check_paren_count(string command_line)
+	{
+		int left = num_occurences('(', command_line);
+		int right = num_occurences(')', command_line);
+		if (left != right)
+		{
+			cout << "Error: Unexpected '(' or ')'" << endl;
+			return false;
+		}
+		return true;
+	}
+
+	//returns false if there is no command in between the ()
+	bool check_paren_empty(string command_line)
+	{
+		return true;
+	}
+
+	//return false if there is a ( or ) in a command
+	bool check_paren_in_commands(string temp)
+	{
+		for (unsigned j = 0; j < temp.size(); j++)
+		{
+			if (temp.at(j) == ')' || temp.at(j) == '(')
+			{
+				cout << "Error: Unexpected '(' or ')' ";
+				return false;
+			}
+		}
+		return true;
+	}
+
+
+	//returns false if | or & was found. 
+	bool check_connector_errors(string command_line)
+	{
+		char* store = strdup(command_line.c_str());
+		char* token;
+		token = strtok(store, " ");
+		string temp = token;
+		if (temp.at(0) == ';') 
+		{
+			cout << "Error: Cannot have \";\" in beginning of command line" << endl;
+			return false;
+		}
+		if (command_line.find(";;") != string::npos)
+		{
+			cout << "Error: \";;\" is invalid" << endl;
+			return false;
+		}
+		unsigned end = command_line.size() - 1;
+		if (command_line.at(end) == '|' || command_line.at(end) ==  '&')
+		{
+			cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;
+			return false;
+		}
+		if (command_line.at(0) == '|' || command_line.at(0) == '&')
+		{
+			cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;
+			return false;
+		}
+		for(unsigned i = 0; i < command_line.size() - 1; i++)
+		{
+			if (command_line.at(i) == '|')
+			{
+				if (command_line.at(i + 1) != '|')
+				{
+					cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;       
+					return false;
+				}
+				else i++;
+			}
+			else if (command_line.at(i) == '&')
+			{
+				if (command_line.at(i + 1) != '&')
+				{
+					cout << "Error: Incorrect syntax \"||\" and \"&&\"" << endl;       
+					return false;
+				}
+				else i++;
+			}
+		}
+		return true;
+	}
   
 
-void parse_comments(string& command_line)
-{
-   char* store = strdup(command_line.c_str());
-   char* token;
-   string temp, store_comm;
-   token = strtok(store, " ");
-   temp = token;
-   //checks if theres a # before a command/connector
-   while (token != NULL)
-   {
-      temp = token;
-      if (temp.at(0) == '#')
-      {
-         command_line = store_comm;
-         return;
-      }
+	void parse_comments(string& command_line)
+	{
+		char* store = strdup(command_line.c_str());
+		char* token;
+		string temp, store_comm;
+		token = strtok(store, " ");
+		temp = token;
+		//checks if theres a # before a command/connector
+		while (token != NULL)
+		{
+			temp = token;
+			if (temp.at(0) == '#')
+			{
+				command_line = store_comm;
+				return;
+			}
       
-      store_comm = store_comm + " " + temp;
-      token = strtok(NULL, " ");
-   }
-   //checks if theres a # after a connector
-   for (unsigned i = 0; i < store_comm.size() - 1; i++)
-   {
-      if ((store_comm.at(i) == '|' || store_comm.at(i) == ';'
-      || store_comm.at(i) == '&') && store_comm.at(i + 1) == '#') 
-      {
-         store_comm.erase(store_comm.begin() + i, store_comm.end());
-         command_line = store_comm;
-         return;
-      }
-   }
-   command_line = store_comm;
+			store_comm = store_comm + " " + temp;
+			token = strtok(NULL, " ");
+		}
+		//checks if theres a # after a connector
+		for (unsigned i = 0; i < store_comm.size() - 1; i++)
+		{
+			if ((store_comm.at(i) == '|' || store_comm.at(i) == ';'
+			|| store_comm.at(i) == '&') && store_comm.at(i + 1) == '#') 
+			{
+				store_comm.erase(store_comm.begin() + i, store_comm.end());
+				command_line = store_comm;
+				return;
+			}
+		}
+		command_line = store_comm;
+	}
+	void insert_command(string c)
+	{
+		Command* new_comm = new Command(c);
+		command_ptrs.push(new_comm);
+	}
+	bool empty_command(string temp)
+	{
+		char* store = strdup(temp.c_str());
+		char* token = strtok(store, " ");
+		if (token == NULL) return true;
+		return false;
 }
-   
-//Tokens everything in between ; | & into a queue.
-//It still keeps the spaces however ie " ls -a"
-void parse_commands(queue<string>& commands, string command_line)
-{
-   char* store = strdup(command_line.c_str());
-   char* token;
-   //just to parse all commands into queue
-   token = strtok(store, ";|&");
-   while (token != NULL)
-   {
-      string temp = token;
-      commands.push(temp);
-      token = strtok(NULL, ";||&&" );
-   }
-}   
+	//return false if there was a ( or ) in the command
+	bool parse_pointers(string& c)
+	{
+		string temp;
+		string for_connectors = c;
+		for (unsigned i = 1; i < c.size(); i++)
+		{
+			if (c.at(i) == '(')
+			{
+				temp = "";
+				i++;
+				while (c.at(i)!= ')')
+				{
+					temp = temp + c.at(i);
+					i++;
+				}
+				insert_command(temp);
+				int start = for_connectors.find(temp);
+				--start;
+				int end = temp.size() + 2;
+				for_connectors.replace(start, end, "C");
+				temp = "";
+			}
+			else if (c.at(i) == ';')
+			{
+				if (empty_command(temp))
+				{
+					temp = "";
+				}
+				else
+				{
+					insert_command(temp);
+					if (check_paren_in_commands(temp) == false) return false;
+					temp = "";
+				}
+			}
+			else if (c.at(i) == '|')
+			{
+				if (empty_command(temp))
+				{
+					temp = "";
+				}
+				else
+				{
+					insert_command(temp);
+					if (check_paren_in_commands(temp) == false) return false;
+					temp = "";
+				}
+				i++;
+			}
+			else if (c.at(i) == '&')
+			{
+				if (empty_command(temp))
+				{
+					temp = "";
+				}
+				else
+				{
+					insert_command(temp);
+					if (check_paren_in_commands(temp) == false) return false;
+					temp = "";
+				}
+				i++;
+			}
+			else temp = temp + c.at(i);
+		}
+		if (!empty_command(temp))
+		{
+			insert_command(temp);
+			if (check_paren_in_commands(temp) == false) return false;
+		}
+		c = for_connectors;
+		return true;
 
-//Searches from ; | and & and puts it into connector queue
-void parse_connectors(queue<string>& connector, string command_line)
-{
-   unsigned i;
-   for(i = 0; i < command_line.size(); i++)
-   {
-      if (command_line.at(i) == ';')
-      {
-         connector.push(";");
-      }
-      else if (command_line.at(i) == '|')
-      {
-         connector.push("|");
-         i++;
-      }
-      else if (command_line.at(i) == '&')
-      {
-         connector.push("&");
-         i++;
-      }
-   }
-   
-}
+	}
+	void parse_connectors(string command_line)
+	{
+		unsigned i;
+		for(i = 0; i < command_line.size(); i++)
+		{
+			if (command_line.at(i) == ';')
+			{
+				connector.push(";");
+			}
+			else if (command_line.at(i) == '|')
+			{
+				connector.push("|");
+				i++;
+			}
+			else if (command_line.at(i) == '&')
+			{
+				connector.push("&");
+				i++;
+			}
+		}
+	}
 
-//Checks if the next command is "exit"
-//Returns false if the program should exit
-bool no_exit(string command)
-{
-   bool dont_exit = true;
-   char* token;
-   char* store = strdup(command.c_str());
-   token = strtok(store, " ");
-   string check_exit = token;
-   if (check_exit == "exit") dont_exit = false;
-   
-   return dont_exit;
-}
+	void clear_queue()
+	{
+		while (!command_ptrs.empty())
+		{
+			delete command_ptrs.front();
+			command_ptrs.front() = 0;
+			command_ptrs.pop();
+		}
+		while (!connector.empty())
+		{
+			connector.pop();
+		}
+	}
 
-//Executes a command from the string in the command queue
-//Converts the string from the queue  into char* []
-void execute_command(queue<string>& command)//, bool fail_command)
-{
-   string command_s = command.front();
-   char* token;
-   char* store = strdup(command_s.c_str());
-   token = strtok(store, " ");
-   int pos = 0;
-   char* arr[15];
-   
-   while (token != NULL)
-   {
-      arr[pos] = token;
-      pos++;
-      token = strtok(NULL, " ");
-   }
-
-   arr[pos] = NULL;
-   
-   if (execvp(arr[0], arr) < 0)
-   {
-      perror(NULL);
-      exit(EXIT_FAILURE);
-   }
-}
-
-//Empties the queue just in case there are some left over
-//by the time the user inputs commands again
-void clear_queue(queue<string>& command, queue<string>& connector)
-{
-   while (!command.empty()) command.pop();
-   while (!connector.empty()) connector.pop();
-}
-
-
-bool empty_command(queue<string> command)
-{
-   while (!command.empty())
-   {
-      char* store = strdup(command.front().c_str());
-      char* token = strtok(store, " ");
-      if (token == NULL) return true;
-      else command.pop();
-   }
-   return false;
-
-
-}
-//Outputs $ and where user can input commands
-//Runs the functions to parse commands and connectors
-void prompt(queue<string>& command_queue, queue<string>& connector_queue)
-{
-   string command_line;
-   
-   cout << "$: ";
-   getline(cin, command_line);
-   if (command_line == "" || command_line.at(0) == '#') return;
-   parse_comments(command_line);
-   bool single_error = check_connector_errors(command_line);
-   if (single_error == false) return;
-   parse_commands(command_queue, command_line);
-   parse_connectors(connector_queue, command_line);
-   if (empty_command(command_queue))
-   {
-      cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;
-      clear_queue(command_queue, connector_queue);
-   }
-} 
-
-
-//Returns false if there was an exit command
-bool fork_process(queue<string>& command, queue<string>& connector)
-{
-      while (!command.empty())
-      { 
-         //check if the command is exit
-         bool dont_exit = no_exit(command.front());
-         if (dont_exit == false) return false;
-
-         fail_command = false;
-         int status;
-         pid_t current_pid, w;
-         current_pid = fork();
-         
-         if (current_pid < 0) //if pid is negative, there was an error with fork()
-         {
-            perror("fork()");
-            exit(-1);
-         }
-         else if (current_pid == 0) //if pid is 0, we are in the child process
-         {
-            execute_command(command);
-            exit(EXIT_FAILURE); //if the execvp didn't run successfully, return EXIT_FAILURE to parent
-         }
-         else 
-         {
-            w = waitpid(current_pid, &status, 0); //parent waits for the child. child will return -1 if execvp failed
-            if (((WIFEXITED(status) == WEXITSTATUS(status)) != 0) || w == -1) fail_command = true; //parent checks if child failed
-            
-            command.pop();
-            if (!connector.empty())
+	void prompt()
+	{
+		cout << "$: ";
+		string command_line;
+		getline(cin, command_line);
+		if (command_line == "" || command_line.at(0) == '#') return;
+		parse_comments(command_line);
+		bool single_error = check_connector_errors(command_line);
+		if (single_error == false) return;
+		if (check_paren_count(command_line) == false) return;
+		if (parse_pointers(command_line) == false) return;
+		parse_connectors(command_line);
+	}
+	void ptr_pop()
+	{
+		delete command_ptrs.front();
+		command_ptrs.front() = 0;
+		command_ptrs.pop();
+	}
+	bool fork_process()
+	{
+		while (!command_ptrs.empty())
+		{
+			if (command_ptrs.front()->execute() == false) return false;
+			bool fail = command_ptrs.front()->get_fail_command();
+			ptr_pop();
+			if (!connector.empty())
+			{
+				bool check = true;
+            while (check && !connector.empty())
             {
-               bool check = true;
-               while (check && !connector.empty())
-               {
-                  if (command.empty()) break;
-                  string temp_connector = connector.front();
-                  connector.pop();
-                  if (temp_connector == "|" && fail_command == false) command.pop();
-                  else if (temp_connector == "&" && fail_command == true) command.pop();
-                  else break;
-               }
+					string temp_connector = connector.front();
+					connector.pop();
+               if (command_ptrs.empty()) break;
+					else if (temp_connector == "|" && fail == false) ptr_pop();
+					else if (temp_connector == "&" && fail == true) ptr_pop();
+               else break;
             }
+			}
+		}
+		return true;
+	}
+	void run_rshell()
+	{
+		while (run)
+		{
+			prompt();
+			run = fork_process();
+			clear_queue();
+		}
+	}
 
-         } 
-      }
-      return true;
-}
-
-
-
-//The main function that runs the shell terminal
-void rshell()
-{
-   bool stay_while = true;
-   while (stay_while)
-   {
-      prompt(command, connector); 
-      stay_while = fork_process(command, connector);
-      clear_queue(command, connector);
-   }
-}
-
-
+};
 #endif

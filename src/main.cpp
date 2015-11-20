@@ -5,6 +5,6 @@ using namespace std;
 
 int main()
 {
-   rshell();
-   return 0;
+	Rshell myshell;
+	myshell.run_rshell();
 }
