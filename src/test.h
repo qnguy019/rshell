@@ -104,13 +104,13 @@ public:
 			return false;
 		}
 		//Too many arguments for bracket
-		if (bracket && (arg.size() > 4 || arg.at(1).at(0) != '-'))
+		if (bracket && (arg.size() > 4 || (arg.at(1).at(0) != '-' && arg.size() == 4)))
 		{
 			cout << "Error: Too many arguments" << endl;
 			return false;
 		}
 		//Too many arguments for test
-		if (!(bracket) && (arg.size() > 3 || arg.at(1).at(0) != '-'))
+		if (!(bracket) && (arg.size() > 3 || (arg.at(1).at(0) != '-' && arg.size() == 3)))
 		{
 			cout << "Error: Too many arguments" << endl;
 			return false;
