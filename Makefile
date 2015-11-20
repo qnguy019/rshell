@@ -9,10 +9,14 @@ rshell: src/main.cpp src/rshell.h src/command.h
 	mv rshell bin
 
 test: 
-	cp tests/test.sh run_test
+	cp tests/test.sh run_test &&\
+	cp tests/preced.sh run_preced &&\
+	cp tests/fulltest.sh run_fulltest
 
 donetest:
-	rm run_test
+	rm run_test &&\
+	rm run_preced &&\
+	rm run_fulltest
 
 clean: 
 	rm -rf bin
