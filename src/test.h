@@ -7,6 +7,7 @@
 #include <queue>
 #include <vector>
 #include <stdlib.h>
+#include <time.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -20,15 +21,19 @@ class Test
 protected:
 	string orig;
 	bool bracket;
+	bool flag;
 	bool yes;
 	vector<string> arg;
 public: 
 	Test(string o, string fw)
 	{
+		flag = false;
 		orig = o;
 		if (fw == "[") bracket = true;
 		else bracket = false;
 		yes = false;
+		arg.clear();
+		parse_orig();
 	}
 	void parse_orig()
 	{
@@ -36,54 +41,83 @@ public:
 		char* store = strdup(orig.c_str());
 		string temp;
 		token = strtok(store, " ");
-		string a;
 		while (token != NULL)
 		{
-			a = token;
+			string a = token;
 			temp = temp + " " + a;
 			arg.push_back(a);
 			token = strtok(NULL, " ");
 		}
 		orig = temp;
 	}
-
+	//returns false if failed
 	bool run(struct stat& sb)
 	{
-
 		char* token;
 		char* store = strdup(orig.c_str());
 		int pos = 0;
 		char* arr[10];
 		token = strtok(store, " ");
-		bool bracket = false;
 		while (token != NULL)
 		{
 			arr[pos] = token;
 			pos++;
 			token = strtok(NULL, " ");
 		}
-		if (bracket) --pos;
+		//if (bracket) --pos;
 		arr[pos] = NULL;
-		if (stat(arr[1], &sb) >= 0) return true;
-		else return false;
+		int i = 1;
+		if (flag) i++;
+		if (stat(arr[i], &sb) >= 0) return true;
+		perror("stat");
+		return false;
 
 	}
 	//returns false if it did not run successfully
 	bool execute()
 	{
+		flag = false;
 		struct stat sb;
-		if (arg.size() != 2)
+		//Not enough arguments
+		if (bracket && arg.size() < 3)
 		{
-			cout << "Error: Not Enough Arguments" << endl;
+			cout << "Error: Not enough arguments" << endl;
 			return false;
 		}
+		if (!(bracket) && arg.size() < 2)
+		{
+			cout << "Error: Not enough arguments" << endl;
+			return false;
+		}
+		//If there is no matching ] for [
+		if (bracket)
+		{
+			if (orig.find("[") == string::npos || orig.find("]") == string::npos)
+			{
+				cout << "Error: No matching ']' for '['" << endl;
+				return false;
+			}
+		}
+		//Too many arguments for bracket
+		if (bracket && arg.size() > 4)
+		{
+			cout << "Error: Too many arguments" << endl;
+			return false;
+		}
+		//Too many arguments for test
+		if (!(bracket) && arg.size() > 3)
+		{
+			cout << "Error: Too many arguments" << endl;
+			return false;
+		}
+		//If the only thing they enter is []
 		if (arg.size() == 2 && arg.at(0) == "[" && arg.at(1) == "]")
 		{
 			cout << "Error: Empty []" << endl;
 			return false;
 		}
-		
-		if (arg.at(1).at(0) != '-' && arg.size() == 2)
+		//if the argument after test or [ isn't a flag
+		if (arg.at(1).at(0) != '-')
 		{
 			yes = run(sb);
 			if (yes) return true;
@@ -91,11 +125,14 @@ public:
 		}
 		else if (arg.at(1).at(0) == '-')
 		{
+			flag = true;
 			if (arg.at(1) == "-") return false;
 			else if (arg.at(1) == "-e")
 			{
-				if (arg.size() == 2) return true;
+				if (!bracket && arg.size() == 2) return true;
+				else if (bracket && arg.size() == 3) return true;
 				else yes = run(sb);
+				if (yes) cout << "Yes" << endl;
 				if (yes) return true;
 				return false;
 			}
@@ -119,6 +156,7 @@ public:
 				return false;
 			}
 		}
+		return true;
 	}
 };
 

@@ -34,13 +34,11 @@ public:
 		}
 		return true;
 	}
-
 	//returns false if there is no command in between the ()
 	bool check_paren_empty(string command_line)
 	{
 		return true;
 	}
-
 	//return false if there is a ( or ) in a command
 	bool check_paren_in_commands(string temp)
 	{
@@ -54,8 +52,6 @@ public:
 		}
 		return true;
 	}
-
-
 	//returns false if | or & was found. 
 	bool check_connector_errors(string command_line)
 	{
@@ -127,8 +123,6 @@ public:
 		}
 		return true;
 	}
-  
-
 	void parse_comments(string& command_line)
 	{
 		char* store = strdup(command_line.c_str());
@@ -275,7 +269,6 @@ public:
 			}
 		}
 	}
-
 	void clear_queue()
 	{
 		while (!command_ptrs.empty())
@@ -289,7 +282,7 @@ public:
 			connector.pop();
 		}
 	}
-
+	//gets input from user and parses the information into the queues
 	void prompt()
 	{
 		cout << "$: ";
@@ -303,12 +296,15 @@ public:
 		if (parse_pointers(command_line) == false) return;
 		parse_connectors(command_line);
 	}
+	//pops the command pointer off the queue
 	void ptr_pop()
 	{
 		delete command_ptrs.front();
 		command_ptrs.front() = 0;
 		command_ptrs.pop();
 	}
+	//Goes through the command and connector queues
+	//returns true if there was no exit command
 	bool fork_process()
 	{
 		while (!command_ptrs.empty())
@@ -332,6 +328,7 @@ public:
 		}
 		return true;
 	}
+	//main function to run rshell
 	void run_rshell()
 	{
 		while (run)

@@ -11,7 +11,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
 #include "test.h"
+
 using namespace std;
 
 class Command
@@ -133,18 +135,18 @@ public:
          }
          else if (current_pid == 0) //if pid is 0, we are in the child process
          {
-				/*if (first_word == "test" || first_word == "[")
+				if (first_word == "test" || first_word == "[")
 				{
 					Test* new_test = new Test(command.front(), first_word);
-					bool fail = new_test->execute();
-					if (fail == -1) exit(EXIT_FAILURE);
+					bool yes = new_test->execute();
+					if (yes == false) exit(EXIT_FAILURE);
 					else exit(EXIT_SUCCESS);
 				}
 				else
-				{*/
+				{
 					execute_command();
 					exit(EXIT_FAILURE); //if the execvp didn't run successfully, return EXIT_FAILURE to parent
-				//}
+				}
          }
          else 
          {
