@@ -6,21 +6,21 @@
 #include <cstring>
 #include <queue>
 #include <vector>
-#include <map>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
+#include "test.h"
 using namespace std;
 
 class Command
 {
-public:
+protected:
 	queue<string> command;
 	queue<string> connector;
 	bool fail_command;
+public: 
 	Command(string command_line)
 	{
 		fail_command = false;
@@ -72,16 +72,13 @@ public:
 	}
 	//Checks if the next command is "exit"
 	//Returns false if the program should exit
-	bool no_exit(string c)
+	string check_word(string c)
 	{
-		bool dont_exit = true;
 		char* token;
 		char* store = strdup(c.c_str());
 		token = strtok(store, " ");
-		string check_exit = token;
-		if (check_exit == "exit") dont_exit = false;
-   
-		return dont_exit;
+		string check = token;
+		return check;
 	}
 
 	bool get_fail_command()
@@ -121,8 +118,8 @@ public:
       while (!command.empty())
       { 
          //check if the command is exit
-         bool dont_exit = no_exit(command.front());
-         if (dont_exit == false) return false;
+			string first_word = check_word(command.front());
+         if (first_word == "exit") return false;
 
          fail_command = false;
          int status;
@@ -136,8 +133,18 @@ public:
          }
          else if (current_pid == 0) //if pid is 0, we are in the child process
          {
-            execute_command();
-            exit(EXIT_FAILURE); //if the execvp didn't run successfully, return EXIT_FAILURE to parent
+				if (first_word == "test" || first_word == "[")
+				{
+					Test* new_test = new Test(command.front());
+					bool fail = new_test->execute();
+					if (fail == -1) exit(EXIT_FAILURE);
+					else exit(EXIT_SUCCESS);
+				}
+				else
+				{
+					execute_command();
+					exit(EXIT_FAILURE); //if the execvp didn't run successfully, return EXIT_FAILURE to parent
+				}
          }
          else 
          {

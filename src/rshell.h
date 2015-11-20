@@ -4,12 +4,12 @@
 #include "command.h"
 class Rshell
 {
-public:
+protected:
 	queue<Command*> command_ptrs;
 	queue<string> connector;
 	bool run;
 	bool fail;
-
+public:
 	Rshell()
 	{
 		run = true;
@@ -93,6 +93,16 @@ public:
 					cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;       
 					return false;
 				}
+				else if (command_line.at(i + 1) == ')' || command_line.at(i + 2) == ')')
+				{
+					cout << "Error: Unexpected '(' or ')'" << endl;
+					return false;
+				}
+				else if (command_line.at(i - 1) == '(')
+				{
+					cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;
+					return false;
+				}
 				else i++;
 			}
 			else if (command_line.at(i) == '&')
@@ -100,6 +110,16 @@ public:
 				if (command_line.at(i + 1) != '&')
 				{
 					cout << "Error: Incorrect syntax \"||\" and \"&&\"" << endl;       
+					return false;
+				}
+				else if (command_line.at(i + 1) == ')' || command_line.at(i + 2) == ')')
+				{
+					cout << "Error: Unexpected '(' or ')'" << endl;
+					return false;
+				}
+				else if (command_line.at(i - 1) == '(')
+				{
+					cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;
 					return false;
 				}
 				else i++;
@@ -159,7 +179,7 @@ public:
 	{
 		string temp;
 		string for_connectors = c;
-		for (unsigned i = 1; i < c.size(); i++)
+		for (unsigned i = 0; i < c.size(); i++)
 		{
 			if (c.at(i) == '(')
 			{
@@ -169,6 +189,11 @@ public:
 				{
 					temp = temp + c.at(i);
 					i++;
+				}
+				if (empty_command(temp))
+				{
+					cout << "Error: Unexpected '(' or ')'" << endl;
+					return false;
 				}
 				insert_command(temp);
 				int start = for_connectors.find(temp);
