@@ -82,7 +82,7 @@ public:
 		string check = token;
 		return check;
 	}
-
+	//Returns the fail_command, which is if the last command failed or not
 	bool get_fail_command()
 	{
 		return fail_command;

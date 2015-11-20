@@ -118,7 +118,13 @@ public:
 					cout << "Error: Incorrect syntax of \"||\" and \"&&\"" << endl;
 					return false;
 				}
+
 				else i++;
+			}
+			else if (command_line.at(i) == '(' && command_line.at(i + 1) == ';')
+			{
+				cout << "Error: Unexpected ';'" << endl;
+				return false;
 			}
 		}
 		return true;
