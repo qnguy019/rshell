@@ -31,7 +31,7 @@ EOF
 bin/rshell << EOF
 ls
 (echo A && (asdf && echo A)) || (echo C && echo D) || (echo D || echo F)
-(ls -j || (echo A && (asdf && echo B))) || echo Hello Worl
+(ls -j || (echo A && (asdf && echo B))) || echo Hello World
 echo A || (echo Q && echo B) && (echo C && (asdf || (echo Q && echo U && asdf))) || echo We out
 echo; exit
 EOF

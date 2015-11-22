@@ -205,7 +205,7 @@ bool Rshell::arg_error(string c)
 		count++;
 		token = strtok(NULL, "()");
 	}
-	if (count == 1) return true;
+	if (count == 2) return true;
 	return false;
 }
 
