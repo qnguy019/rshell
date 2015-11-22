@@ -5,6 +5,7 @@
 #include <string>
 #include <cstring>
 #include <queue>
+#include <stack>
 #include <vector>
 #include <stdlib.h>
 #include <stdio.h>
@@ -13,20 +14,28 @@
 #include <unistd.h>
 
 #include "test.h"
-
+#include "shell.h"
 using namespace std;
-
 class Command
 {
 protected:
+	string orig;
 	queue<string> command;
 	queue<string> connector;
 	bool fail_command;
+	bool is_sub;
 public: 
 	Command(string command_line)
 	{
+		orig = command_line;
 		fail_command = false;
-		fill_queue(command_line);
+		if (command_line.find('(') != string::npos) is_sub = true;
+		else
+		{
+			fill_queue(command_line);
+			is_sub = false;
+		}
+
 	}
 	void parse_commands (string command_line)
 	{
@@ -107,7 +116,6 @@ public:
 		}
 
 		arr[pos] = NULL;
-   
 		if (execvp(arr[0], arr) < 0)
 		{
 			perror(NULL);
@@ -117,62 +125,71 @@ public:
 	//returns true if no exit
 	bool execute()
 	{
-      while (!command.empty())
-      { 
-         //check if the command is exit
-			string first_word = check_word(command.front());
-         if (first_word == "exit") return false;
+		if (is_sub)
+		{
+			Shell* ss = new Subshell(orig);
+			if (ss->run_shell() == false) return false;
+			fail_command = ss->get_fail();
+		}
+		else
+		{
+			while (!command.empty())
+			{
+				//check if the command is exit
+				string first_word = check_word(command.front());
+				if (first_word == "exit") return false;
 
-         fail_command = false;
-         int status;
-         pid_t current_pid, w;
-         current_pid = fork();
-         
-         if (current_pid < 0) //if pid is negative, there was an error with fork()
-         {
-            perror("fork()");
-            exit(-1);
-         }
-         else if (current_pid == 0) //if pid is 0, we are in the child process
-         {
-				if (first_word == "test" || first_word == "[" || first_word.at(0) == '[')
+				fail_command = false;
+				int status;
+				pid_t current_pid, w;
+				current_pid = fork();
+
+				if (current_pid < 0) //if pid is negative, there was an error with fork()
 				{
-					Test* new_test = new Test(command.front(), first_word);
-					bool yes = new_test->execute();
-					if (yes == false) exit(EXIT_FAILURE);
-					else exit(EXIT_SUCCESS);
+					perror("fork()");
+					exit(-1);
+				}
+				else if (current_pid == 0) //if pid is 0, we are in the child process
+				{
+					if (first_word == "test" || first_word == "[" || first_word.at(0) == '[')
+					{
+						Test* new_test = new Test(command.front(), first_word);
+						bool yes = new_test->execute();
+						if (yes == false) exit(EXIT_FAILURE);
+						else exit(EXIT_SUCCESS);
+					}
+					else
+					{
+						execute_command();
+						exit(EXIT_FAILURE); //if the execvp didn't run successfully, return EXIT_FAILURE to parent
+					}
 				}
 				else
 				{
-					execute_command();
-					exit(EXIT_FAILURE); //if the execvp didn't run successfully, return EXIT_FAILURE to parent
-				}
-         }
-         else 
-         {
-            w = waitpid(current_pid, &status, 0); //parent waits for the child. child will return -1 if execvp failed
-            if (((WIFEXITED(status) == WEXITSTATUS(status)) != 0) || w == -1) fail_command = true; //parent checks if child failed
-            
-            command.pop();
-            if (!connector.empty())
-            {
-               bool check = true;
-               while (check && !connector.empty())
-               {
-						string temp_connector = connector.front();
-						connector.pop();
-                  if (command.empty()) break;
-						else if (temp_connector == "|" && fail_command == false) command.pop();
-						else if (temp_connector == "&" && fail_command == true) command.pop();
-                  else break;
-               }
+					w = waitpid(current_pid, &status, 0); //parent waits for the child. child will return -1 if execvp failed
+					if ((WIFEXITED(status) == true && WEXITSTATUS(status) != 0) || w == -1) fail_command = true; //parent checks if child failed
 
-           }
-         } 
-      }
+
+					command.pop();
+					if (!connector.empty())
+					{
+						bool check = true;
+						while (check && !connector.empty())
+						{
+							string temp_connector = connector.front();
+							connector.pop();
+							if (command.empty()) break;
+							else if (temp_connector == "|" && fail_command == false) command.pop();
+							else if (temp_connector == "&" && fail_command == true) command.pop();
+							else break;
+						}
+
+					}
+				}
+			}
+		}
 		return true;
 	}
-
 
 };
 

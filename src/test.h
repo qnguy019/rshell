@@ -13,7 +13,6 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include "test.h"
 using namespace std;
 
 class Test

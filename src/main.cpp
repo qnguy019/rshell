@@ -1,10 +1,10 @@
 #include <iostream>
-#include "rshell.h"
+#include "command.h"
 
 using namespace std;
 
 int main()
 {
-	Rshell myshell;
-	myshell.run_rshell();
+	Shell* myshell = new Rshell();
+	myshell->run_shell();
 }

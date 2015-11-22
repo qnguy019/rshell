@@ -3,8 +3,8 @@ CFLAGS=-Wall -Werror -ansi -pedantic
 
 all: rshell
 
-rshell: src/main.cpp src/rshell.h src/command.h
-	$(CC) $(CFLAGS) src/main.cpp -o rshell &&\
+rshell: src/main.cpp src/subshell.cpp src/rshell.cpp src/shell.h src/command.h src/test.h
+	$(CC) $(CFLAGS) src/main.cpp src/subshell.cpp src/rshell.cpp -o rshell &&\
 	mkdir bin &&\
 	mv rshell bin
 
