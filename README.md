@@ -63,8 +63,15 @@ In order to run test scripts for test, preced, and fulltest:
 - make test
 - ./test_command or ./precedence_test or ./run_fulltest
 - Once you are finished, "make donetest" in order to delete these scripts
+###Makefile
 
-###Design
+   Description: This is used to compile the code and putting the executable in the created bin directory.
+- _make or make all:_ compile the code, create a new bin directory, and move the executable in bin
+- _make test:_ create test scripts for test command, precedence operators, and full test (see above)
+- _make donetest:_ remove the test scripts
+- _make clean:_ remove the bin directory and all the files it contained
+
+##Design
 In my first assignment, I only had two files for my program: main.cpp and rshell.h. I put all the code into one file and had no classes at all. Once I started to work on Assignment 2 however, I realize that having one file and no classes was a bad idea and that I couldn't get away with it anymore. To make my life easier, I needed more classes, especially for precedence operators. 
 
 - Shell.h: Taking inspiration from Lab 7 (Strategy Pattern with Containers and Sorting Algorithms), I based my structure similarly to that. I created an abstract base class called Shell which contained virtual functions of running the shell, fork process, and returning whether or not the command failed. 
@@ -78,13 +85,6 @@ In my first assignment, I only had two files for my program: main.cpp and rshell
 - Tesh.h: Command uses this class if the user inputted a test command. It does error checking for both test and [ ], and then depending on the flag, it will return whether or no the file or directory exists. Instead of execvp, we had to use stat. 
 
 _Conclusions:_ Creating classes and being organized made coding a lot easier, even though it took a long time to do it. Whenever something was wrong with my code, I at least knew which class to look at depending on the problem, as oppose to before I had to scroll through a single file and look at all the functions. If I wanted to make my code even cleaner, I would probably make a class specifically for error checking or parsing. 
-###Makefile
-
-   Description: This is used to compile the code and putting the executable in the created bin directory.
-- _make or make all:_ compile the code, create a new bin directory, and move the executable in bin
-- _make test:_ create test scripts for test command, precedence operators, and full test (see above)
-- _make donetest:_ remove the test scripts
-- _make clean:_ remove the bin directory and all the files it contained
 
 ##Bugs
 Be aware that this program is not fully complete. I tried to find all the bugs in my program and made them output errors instead of crashing my program. Besides the system call errors that should be outputted with perror, some other errors I outputted are:
