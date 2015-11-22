@@ -17,9 +17,9 @@ To download this repository:
 
 - git clone http://github.com/qnguy019/rshell.git
 - cd rshell
-- git checkout hw1
+- git checkout hw2
 
-"Make" will compile the source file into an executable called rshell, create a new directory called bin, and move rshell into the directory. To execute the code, either type "bin/rshell" or cd into the bin directory and run rshell. 
+"make" will compile the source file into an executable called rshell, create a new directory called bin, and move rshell into the directory. To execute the code, either type "bin/rshell" or cd into the bin directory and run rshell. 
 
 In order to exit the program once it is running, simply type in "exit"
 ##Information
