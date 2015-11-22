@@ -88,7 +88,6 @@ bool Subshell::parse_pointers()
 				cout << "Error: Unexpected '(' or ')'" << endl;
 				return false;
 			}
-			cout << "subshell: " << temp << endl;
 			insert_command(temp);
 			int start = for_connectors.find(temp);
 			--start;

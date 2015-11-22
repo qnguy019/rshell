@@ -212,7 +212,6 @@ bool Rshell::parse_pointers(string& c)
 				cout << "Error: Unexpected '(' or ')'" << endl;
 				return false;
 			}
-//cout << temp << endl;
 			insert_command(temp);
 			int start = for_connectors.find(temp);
 			--start;
