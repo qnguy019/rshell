@@ -245,6 +245,7 @@ bool Rshell::parse_pointers(string& c)
 			if (empty_command(temp))
 			{
 				cout << "Error: Unexpected '(' or ')'" << endl;
+				clear_queue();
 				return false;
 			}
 			bool continue_on = true;
