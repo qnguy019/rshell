@@ -3,7 +3,7 @@
 bin/rshell << EOF
 ls 
 test bin && echo It exists 
-test LISCENSE && echo It exists 
+test LICENSE && echo It exists 
 test Makefile && echo It exists 
 test README.md && echo It exists 
 test src && echo It exists 
@@ -18,7 +18,7 @@ EOF
 bin/rshell << EOF
 ls 
 test -e bin && echo It exists 
-test -e LISCENSE && echo It exists 
+test -e LICENSE && echo It exists 
 test -e Makefile && echo It exists 
 test -e README.md && echo It exists 
 test -e src && echo It exists 
@@ -33,7 +33,7 @@ EOF
 bin/rshell << EOF
 ls 
 test -d bin && echo It exists 
-test -d LISCENSE && echo It exists 
+test -d LICENSE && echo It exists 
 test -d Makefile && echo It exists 
 test -d README.md && echo It exists 
 test -d src && echo It exists 
@@ -48,7 +48,7 @@ EOF
 bin/rshell << EOF
 ls 
 [ bin ] && echo It exists 
-[ LISCENSE ] && echo It exists 
+[ LICENSE ] && echo It exists 
 [ Makefile ] && echo It exists 
 [ README.md ] && echo It exists 
 [ src ] && echo It exists 
@@ -63,7 +63,7 @@ EOF
 bin/rshell << EOF
 ls 
 [ -e bin ] && echo It exists 
-[ -e LISCENSE ] && echo It exists 
+[ -e LICENSE ] && echo It exists 
 [ -e Makefile ] && echo It exists 
 [ -e README.md ] && echo It exists 
 [ -e src ] && echo It exists 
@@ -78,7 +78,7 @@ EOF
 bin/rshell << EOF
 ls 
 [ -f bin ] && echo It exists 
-[ -f LISCENSE ] && echo It exists 
+[ -f LICENSE ] && echo It exists 
 [ -f Makefile ] && echo It exists 
 [ -f README.md ] && echo It exists 
 [ -f src ] && echo It exists 
@@ -93,7 +93,7 @@ EOF
 bin/rshell << EOF
 ls 
 [ -d bin ] && echo It exists 
-[ -d LISCENSE ] && echo It exists 
+[ -d LICENSE ] && echo It exists 
 [ -d Makefile ] && echo It exists 
 [ -d README.md ] && echo It exists 
 [ -d src ] && echo It exists 
@@ -135,7 +135,7 @@ EOF
 bin/rshell << EOF
 ls 
 [ bin asd rag] || echo It failed 
-[ -e LISCENSE arga] && echo It exists 
+[ -e LICENSE arga] && echo It exists 
 [ -f Makefile argr ] && echo It exists 
 [ -d README.md argarg ] && echo It exists 
 test -e src sdfg && echo It exists 
