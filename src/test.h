@@ -15,7 +15,7 @@
 #include <unistd.h>
 using namespace std;
 
-class Test
+class Test //class for test functionality
 {
 protected:
 	string orig;
@@ -34,6 +34,7 @@ public:
 		arg.clear();
 		parse_orig();
 	}
+	
 	void parse_orig()
 	{
 		char* token;
@@ -49,6 +50,7 @@ public:
 		}
 		orig = temp;
 	}
+	
 	//returns false if failed
 	bool run(struct stat& sb)
 	{
@@ -63,15 +65,14 @@ public:
 			pos++;
 			token = strtok(NULL, " ");
 		}
-		//if (bracket) --pos;
 		arr[pos] = NULL;
 		int i = 1;
 		if (flag) i++;
 		if (stat(arr[i], &sb) >= 0) return true;
 		perror("stat");
 		return false;
-
 	}
+	
 	//returns false if it did not run successfully
 	bool execute()
 	{
@@ -120,18 +121,20 @@ public:
 			cout << "Error: Empty []" << endl;
 			return false;
 		}
-		//if the argument after test or [ isn't a flag
+		//if the argument after test or [ isn't a flag (i.e the file path)
 		if (arg.at(1).at(0) != '-')
 		{
 			yes = run(sb);
 			if (yes) return true;
 			return false;
 		}
+
+		//if the second argument has a - (flag_
 		else if (arg.at(1).at(0) == '-')
 		{
 			flag = true;
-			if (arg.at(1) == "-") return false;
-			else if (arg.at(1) == "-e")
+			if (arg.at(1) == "-") return false; //error if they only put a '-'
+			else if (arg.at(1) == "-e") 
 			{
 				if (!bracket && arg.size() == 2) return true;
 				else if (bracket && arg.size() == 3) return true;

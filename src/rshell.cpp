@@ -1,9 +1,13 @@
 //#include "shell.h"
 #include "command.h"
+
+//constructor
 Rshell::Rshell()
 {
 	run = true;
 }
+
+//returns the number of occurences of a char
 int Rshell::num_occurences(char a, string c)
 {
 	int count = 0;
@@ -13,6 +17,8 @@ int Rshell::num_occurences(char a, string c)
 	}
 	return count;
 }
+
+//returns false if there is an uneven amount of '(' and ')'
 bool Rshell::check_paren_count(string command_line)
 {
 	int left = num_occurences('(', command_line);
@@ -24,11 +30,13 @@ bool Rshell::check_paren_count(string command_line)
 	}
 	return true;
 }
+
 //returns false if there is no command in between the ()
 bool Rshell::check_paren_empty(string command_line)
 {
 	return true;
 }
+
 //return false if there is a ( or ) in a command
 bool Rshell::check_paren_in_commands(string temp)
 {
@@ -119,6 +127,8 @@ bool Rshell::check_connector_errors(string command_line)
 	}
 	return true;
 }
+
+//Removes everything after the #
 void Rshell::parse_comments(string& command_line)
 {
 	char* store = strdup(command_line.c_str());
@@ -152,11 +162,15 @@ void Rshell::parse_comments(string& command_line)
 	}
 	command_line = store_comm;
 }
+
+//Inserts the Command* into the queue
 void Rshell::insert_command(string c)
 {
 	Command* new_comm = new Command(c);
 	command_ptrs.push(new_comm);
 }
+
+//returns true if it was an empty command
 bool Rshell::empty_command(string temp)
 {
 	char* store = strdup(temp.c_str());
@@ -164,6 +178,7 @@ bool Rshell::empty_command(string temp)
 	if (token == NULL) return true;
 	return false;
 }
+
 //return true if we found matching parenthesis
 bool Rshell::empty_stack(stack<char> l, stack<char> r)
 {
@@ -171,12 +186,29 @@ bool Rshell::empty_stack(stack<char> l, stack<char> r)
 	return false;
 }
 
+//pops the ( and ) off their respective stack. Returns true if the stack is empty
 bool Rshell::pop_stack(stack<char> &l, stack<char> &r)
 {
 	l.pop();
 	r.pop();
 	return (empty_stack(l, r));
 }
+
+//returns true if there was only one command in (( ))
+bool Rshell::arg_error(string c)
+{
+	int count = 1;
+	char* store = strdup(c.c_str());
+	char* token = strtok(store, "()");
+	while (token != NULL)
+	{
+		count++;
+		token = strtok(NULL, "()");
+	}
+	if (count > 1) return true;
+	return false;
+}
+
 //return false if there was a ( or ) in the command
 bool Rshell::parse_pointers(string& c)
 {
@@ -186,6 +218,7 @@ bool Rshell::parse_pointers(string& c)
 	{
 		if (c.at(i) == '(')
 		{
+			bool check_arg = false; //checking for cases like ((echo A))
 			stack<char> left;
 			stack<char> right;
 			temp = "";
@@ -197,7 +230,9 @@ bool Rshell::parse_pointers(string& c)
 				else if (c.at(i) == ')') right.push(')');
 				if (left.size() >= right.size() && !left.empty() && !right.empty())
 				{
-					if (pop_stack(left, right) == true) break;
+					bool more_p = pop_stack(left, right);
+					if (more_p) break;
+					else check_arg = true;
 				}
 				temp = temp + c.at(i);
 				i++;
@@ -212,11 +247,20 @@ bool Rshell::parse_pointers(string& c)
 				cout << "Error: Unexpected '(' or ')'" << endl;
 				return false;
 			}
+			bool continue_on = true;
+			if (check_arg && arg_error(temp))
+			{
+				temp = "QuynhNguyenIsAwesome";
+				continue_on = false;
+			}
 			insert_command(temp);
-			int start = for_connectors.find(temp);
-			--start;
-			int end = temp.size() + 2;
-			for_connectors.replace(start, end, "C");
+			if (continue_on)
+			{
+				int start = for_connectors.find(temp);
+				--start;
+				int end = temp.size() + 2;
+				for_connectors.replace(start, end, "C");
+			}
 			temp = "";
 		}
 		else if (c.at(i) == ';')
@@ -271,6 +315,7 @@ bool Rshell::parse_pointers(string& c)
 	return true;
 
 }
+
 void Rshell::parse_connectors(string command_line)
 {
 	unsigned i;
@@ -292,6 +337,7 @@ void Rshell::parse_connectors(string command_line)
 		}
 	}
 }
+
 void Rshell::clear_queue()
 {
 	while (!command_ptrs.empty())
@@ -305,6 +351,7 @@ void Rshell::clear_queue()
 		connector.pop();
 	}
 }
+
 //gets input from user and parses the information into the queues
 void Rshell::prompt()
 {
@@ -319,6 +366,7 @@ void Rshell::prompt()
 	if (parse_pointers(command_line) == false) return;
 	parse_connectors(command_line);
 }
+
 //pops the command pointer off the queue
 void Rshell::ptr_pop()
 {
@@ -326,6 +374,7 @@ void Rshell::ptr_pop()
 	command_ptrs.front() = 0;
 	command_ptrs.pop();
 }
+
 //Goes through the command and connector queues
 //returns true if there was no exit command
 bool Rshell::fork_process()
@@ -351,10 +400,13 @@ bool Rshell::fork_process()
 	}
 	return true;
 }
+
+//Returns whether or not the last command failed
 bool Rshell::get_fail()
 {
 	return fail;
 }
+
 //main function to run rshell
 bool Rshell::run_shell()
 {

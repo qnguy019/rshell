@@ -16,6 +16,7 @@
 #include "test.h"
 #include "shell.h"
 using namespace std;
+
 class Command
 {
 protected:
@@ -23,8 +24,10 @@ protected:
 	queue<string> command;
 	queue<string> connector;
 	bool fail_command;
-	bool is_sub;
+	bool is_sub; //true if there are still ( ) in the orig (need to run subshell)
 public: 
+	
+	//constructor
 	Command(string command_line)
 	{
 		orig = command_line;
@@ -37,6 +40,7 @@ public:
 		}
 
 	}
+	
 	void parse_commands (string command_line)
 	{
 		char* store = strdup(command_line.c_str());
@@ -51,7 +55,6 @@ public:
 		}
 	}   
 
-	//Searches from ; | and & and puts it into connector queue
 	void parse_connectors(string command_line)
 	{
 		unsigned i;
@@ -75,12 +78,12 @@ public:
    
 	}
 
-
 	void fill_queue(string command)
 	{
 		parse_commands(command);
 		parse_connectors(command);
 	}
+	
 	//Checks if the next command is "exit"
 	//Returns false if the program should exit
 	string check_word(string c)
@@ -91,6 +94,7 @@ public:
 		string check = token;
 		return check;
 	}
+	
 	//Returns the fail_command, which is if the last command failed or not
 	bool get_fail_command()
 	{
@@ -105,6 +109,7 @@ public:
 		char* token;
 		char* store = strdup(command_s.c_str());
 		token = strtok(store, " ");
+		string first_word = token;
 		int pos = 0;
 		char* arr[15];
    
@@ -116,12 +121,18 @@ public:
 		}
 
 		arr[pos] = NULL;
-		if (execvp(arr[0], arr) < 0)
+		if (first_word == "QuynhNguyenIsAwesome")
+		{
+			cout << "Error: Invalid '((' and '))' " << endl;
+			exit(EXIT_FAILURE);
+		}
+		else if (execvp(arr[0], arr) < 0)
 		{
 			perror(NULL);
 			exit(EXIT_FAILURE);
 		}
 	}
+	
 	//returns true if no exit
 	bool execute()
 	{

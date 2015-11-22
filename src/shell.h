@@ -13,17 +13,16 @@
 #include <unistd.h>
 using namespace std;
 
-//#include "command.h"
 class Command;
-class Shell
+class Shell //Abstract Base Class
 {
 public:
 	virtual bool fork_process() = 0;
 	virtual bool run_shell() = 0;
 	virtual bool get_fail() = 0;
-
 };
-class Rshell : public Shell
+
+class Rshell : public Shell //The main shell of the program
 {
 protected:
 	queue<Command*> command_ptrs;
@@ -46,13 +45,14 @@ public:
 	void parse_connectors(string command_line);
 	void clear_queue();
 	void prompt();
+	bool arg_error(string c);
 	void ptr_pop();
 	bool fork_process();
 	bool run_shell();
 	bool get_fail();
 };
 
-class Subshell : public Shell
+class Subshell : public Shell //Subshell for arguments inside ( )
 {
 protected:
 	string command_line;
@@ -72,6 +72,7 @@ public:
 	void parse_connectors();
 	void clear_queue();
 	void prompt();
+	bool arg_error(string c);
 	void ptr_pop();
 	bool fork_process();
 	bool run_shell();
