@@ -9,8 +9,8 @@ rshell: src/main.cpp src/subshell.cpp src/rshell.cpp src/shell.h src/command.h s
 	mv rshell bin
 
 test: 
-	cp tests/test.sh run_test &&\
-	cp tests/preced.sh run_preced &&\
+	cp tests/test.sh test_command &&\
+	cp tests/preced.sh precedence_test &&\
 	cp tests/fulltest.sh run_fulltest
 
 donetest:

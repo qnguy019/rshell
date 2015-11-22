@@ -61,10 +61,25 @@ In order to run test scripts for test, preced, and fulltest:
 
 - cd rshell
 - make test
-- ./run_test or ./run_preced or ./run_fulltest
+- ./test_command or ./precedence_test or ./run_fulltest
 - Once you are finished, "make donetest" in order to delete these scripts
 
+###Design
+In my first assignment, I only had two files for my program: main.cpp and rshell.h. I put all the code into one file and had no classes at all. Once I started to work on Assignment 2 however, I realize that having one file and no classes was a bad idea and that I couldn't get away with it anymore. To make my life easier, I needed more classes, especially for precedence operators. 
+
+Shell.h: Taking inspiration from Lab 7 (Strategy Pattern with Containers and Sorting Algorithms), I based my structure similarly to that. I created an abstract base class called Shell which contained virtual functions of running the shell, fork process, and returning whether or not the command failed. 
+
+Rshell.cpp: This is the main shell of the program and it inherits from Shell. This is basically my code from the single rshell.h file of Assignment 1, except this class does not actually execute and fork the process. Rshell asks for user input, does all the error checking, and modify of the string. It then parses the string into a queue of Command pointers and queue of strings for connectors. When Rshell runs, it calls on the Commands' execute command until the queue is empty and pops commands/connectors off accordingly.
+
+Command.h: This is, in a sense, the implementation of my program. The constructor takes in a string (acquired from Rshell) and checks if there are precedence operators in it. If there are precedence operators, the class knows it has create a Subshell pointer and call its run function, else, it parses that into a queue of string commands and string connectors. 
+
+Subshell.cpp: This also inherits from Shell and is a mini rshell. Almost everything is the same with rshell, execept it takes in the string from Command (i.e the string with the precedence operators) instead of from input. It then parses and executes the same way Rshell does. With Command and Subshell, I can correctly deal with nested precedence operators.
+
+Tesh.h: Command uses this class if the user inputted a test command. It does error checking for both test and [ ], and then depending on the flag, it will return whether or no the file or directory exists. Instead of execvp, we had to use stat. 
+
+Conclusions: Creating classes and being organized made coding a lot easier, even though it took a long time to do it. Whenever something was wrong with my code, I at least knew which class to look at depending on the problem, as oppose to before I had to scroll through a single file and look at all the functions. If I wanted to make my code even cleaner, I would probably make a class specifically for error checking or parsing. 
 ###Makefile
+
    Description: This is used to compile the code and putting the executable in the created bin directory.
 - _make or make all:_ compile the code, create a new bin directory, and move the executable in bin
 - _make test:_ create test scripts for test command, precedence operators, and full test (see above)
