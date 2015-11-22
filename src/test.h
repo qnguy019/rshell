@@ -72,12 +72,21 @@ public:
 		perror("stat");
 		return false;
 	}
-	
+
 	//returns false if it did not run successfully
 	bool execute()
 	{
 		flag = false;
 		struct stat sb;
+		//If there is no matching ] for [
+		if (bracket)
+		{
+			if (orig.find("[") == string::npos && orig.find("]") == string::npos)
+			{
+				cout << "Error: No matching ']' for '['" << endl;
+				return false;
+			}
+		}
 		//Not enough arguments
 		if (bracket && arg.size() < 3)
 		{
@@ -89,15 +98,7 @@ public:
 			cout << "Error: Not enough arguments" << endl;
 			return false;
 		}
-		//If there is no matching ] for [
-		if (bracket)
-		{
-			if (orig.find("[") == string::npos && orig.find("]") == string::npos)
-			{
-				cout << "Error: No matching ']' for '['" << endl;
-				return false;
-			}
-		}
+
 		if (orig.find("[[") != string::npos || orig.find("]]") != string::npos)
 		{
 			cout << "Error: Unexpected '[' or ']'" << endl;

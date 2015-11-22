@@ -64,8 +64,6 @@ In order to run test scripts for test, preced, and fulltest:
 - ./run_test or ./run_preced or ./run_fulltest
 - Once you are finished, "make donetest" in order to delete these scripts
 
-
-
 ###Makefile
    Description: This is used to compile the code and putting the executable in the created bin directory.
 - _make or make all:_ compile the code, create a new bin directory, and move the executable in bin
@@ -94,12 +92,12 @@ Note: When the actual test command only has one parameter, it defaults to -n and
 - Any other flag besides -e, -f, -d - _Invalid Flag: For the sake of this assignment, please use -e, -f, or -d_
 - Empty [ ] - _Error: Empty []_
 
-If I missed any errors that I put in the program and forgot to put here, you can email me at qnguy019@ucr.edu.
-
 _Other bugs:_
 - entering more connectors added together ("|||||" or "&&&&&&&&")
+- didn't output error if there were no spaces before and after '[' or '] (i.e [ -e LISCENSE])
+- entering more brackets ("[[[[[ ]]]]]")
 
-
+If I missed any errors that I put in the program and forgot to put here, you can email me at qnguy019@ucr.edu.
 
 
 

@@ -85,8 +85,7 @@ ls
 [ -f tests ] && echo It exists 
 [ -f asdfg ] && echo It exists 
 [ -f asdfg ] || echo It does not exists 
-echo
-exit
+echo; exit
 EOF
 
 # [] -d flag
@@ -134,14 +133,13 @@ EOF
 #test and [] too many arguments
 bin/rshell << EOF
 ls 
-[ bin asd rag] || echo It failed 
-[ -e LICENSE arga] && echo It exists 
+[ bin asd rag ] || echo It failed 
+[ -e LICENSE arga ] && echo It exists 
 [ -f Makefile argr ] && echo It exists 
 [ -d README.md argarg ] && echo It exists 
 test -e src sdfg && echo It exists 
 test -f tests asfe && echo It exists 
 test -d  what is this asdfasdfg && echo It exists 
 test vhgvht asdfg || echo It does not exists 
-echo
-exit
+echo; exit
 EOF
